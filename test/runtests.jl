@@ -147,5 +147,6 @@ end
 
 include("commands.jl")
 include("history.jl")
+include("views.jl")
 
 end
