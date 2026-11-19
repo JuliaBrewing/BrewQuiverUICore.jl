@@ -139,7 +139,38 @@ transaction(s, "Move 2 nodes") do
 end
 ```
 
-Coming next: view data, and layout.
+## View data
+
+Plain data for the frontends to render, with Unitful quantities (formatted by the frontend
+with `format`), `missing` where a value does not apply:
+
+```julia
+format(1.0523u"sg")              # "1.052 sg"; also "23.1 L", "300 g", "5.2%", "35 IBU", "4.0 L/h"
+node_summaries(s)                # NodeSummary per node: kind, results, color, warnings, changed, selected
+node_summary(s, :wort).gravity   # 1.048 sg
+vessel_groups(s)                 # [nothing => lots, :mashtun => [...], :kettle => [...], ...]
+results_table(s)                 # (header, rows) of the results of all the nodes
+node_detail(s, :kettle)          # summary, initial, contents, leftover, incoming and outgoing arrows
+solid_rows(c), liquor_rows(c), mineral_rows(c)   # the parts of contents, as rows
+arrow_summaries(s)               # ArrowSummary per arrow: kind, parameters, duration, moved, released
+fields(Boil())                   # FieldSpecs for forms: label, value, units, fraction, optional
+timeline_rows(s; start = 8u"hr") # when each node is filled, ready and emptied
+vessel_bookings(s)               # when each vessel is busy, the makespan and the overlaps
+solution_rows(apply!(s, Solve(...)))
+```
+
+- `format` shows each unit with its decimals (`display_digits(unit)`, three significant
+  digits by default), masses below 1 kg in g and volumes below 1 L in mL
+  (`display_unit`); compound units as "mg/L".
+- `node_color(s, label)` is the nodeview `"color"` of the user, else the color of the beer
+  from its SRM (`srm_hex` of BrewingFormulas), else that of the malt of a lot, else
+  `nothing` (water, hops), for the frontend's default.
+- The mash pH is given for the nodes with grain still to mash, with its warnings (e.g. a
+  dark grain without its distilled water pH) among those of the node.
+- `SetEquipmentField(vessel, field, value)` edits one field of the equipment of a vessel,
+  for forms built with `fields(equipment(q, vessel))`.
+
+Coming next: layout.
 
 ## The nodeview convention
 

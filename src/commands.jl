@@ -345,19 +345,21 @@ revert_record(c::SetArrowField, q::Quiver) =
 perform!(q::Quiver, c::SetArrowField) =
     (q[c.source => c.destination, c.index] = _with_field(c, q[c.source => c.destination, c.index]); nothing)
 
-# the arrow `a` with the field of `c` set, rebuilt with the constructor of all its fields
-function _with_field(c::SetArrowField, a::AbstractArrow)
-    T = typeof(a)
-    c.field in fieldnames(T) ||
-        _refuse(c, "a $(_arrow_name(a)) has no $(c.field); its fields are " *
-                   join(fieldnames(T), ", "))
-    v = _fit_field(c, fieldtype(T, c.field), c.value)
-    vals = [f == c.field ? v : getfield(a, f) for f in fieldnames(T)]
+# the arrow `a` with the field of `c` set
+_with_field(c::SetArrowField, a::AbstractArrow) = _rebuild(c, a, c.field, c.value)
+
+# `x` with its `field` set to `value`, rebuilt with the constructor of all its fields
+function _rebuild(c, x, field::Symbol, value)
+    T = typeof(x)
+    field in fieldnames(T) ||
+        _refuse(c, "a $(nameof(T)) has no $field; its fields are " * join(fieldnames(T), ", "))
+    v = _fit_field(c, field, fieldtype(T, field), value)
+    vals = [f == field ? v : getfield(x, f) for f in fieldnames(T)]
     return Base.typename(T).wrapper(vals...)
 end
 
 # `v` as a value of the field type `T`
-function _fit_field(c, T, v)
+function _fit_field(c, field, T, v)
     v === nothing && Nothing <: T && return nothing
     if v isa Unitful.Quantity
         for U in Base.uniontypes(T)
@@ -373,7 +375,7 @@ function _fit_field(c, T, v)
     elseif v isa T
         return v
     end
-    _refuse(c, "the $(_field_name(c.field)) takes $(_expected(T)), not $(_fmt(v))")
+    _refuse(c, "the $(_field_name(field)) takes $(_expected(T)), not $(_fmt(v))")
 end
 _fraction(c, x) = 0 ≤ x ≤ 1 ? x : _refuse(c, "a fraction is between 0 and 1 (0 to 100%)")
 # all but temperatures cannot be negative
@@ -566,6 +568,31 @@ function perform!(q::Quiver, c::Equip)
     c.equipment === nothing ? delete!(q.equipment, c.vessel) : equip!(q, c.vessel, c.equipment)
     return nothing
 end
+
+"""
+    SetEquipmentField(vessel, field, value)
+
+Sets the `field` of the equipment of `vessel` (a field of `Vessel`, e.g. `:evaporation`) to
+`value`, converted as by [`SetArrowField`](@ref); `nothing` leaves it to the arrows. A
+vessel without equipment gets one. Reverted by its [`Inverse`](@ref), an [`Equip`](@ref).
+"""
+struct SetEquipmentField <: EditCommand
+    vessel::Symbol
+    field::Symbol
+    value::Any
+end
+
+describe(c::SetEquipmentField) = "Set the $(_field_name(c.field)) of the $(c.vessel) to $(_fmt(c.value))"
+function validate(c::SetEquipmentField, q::Quiver)
+    isempty(String(c.vessel)) && _refuse(c, "the name of a vessel cannot be empty")
+    _with_field(c, something(equipment(q, c.vessel), Vessel()))
+    return nothing
+end
+affected(c::SetEquipmentField, q::Quiver) = affected(Equip(c.vessel, nothing), q)
+revert_record(c::SetEquipmentField, q::Quiver) = Inverse(Equip(c.vessel, equipment(q, c.vessel)))
+perform!(q::Quiver, c::SetEquipmentField) =
+    (equip!(q, c.vessel, _with_field(c, something(equipment(q, c.vessel), Vessel()))); nothing)
+_with_field(c::SetEquipmentField, v::Vessel) = _rebuild(c, v, c.field, c.value)
 
 # ---------------------------------------------------------------------------------------
 # layout and view (see the nodeview convention in the README)

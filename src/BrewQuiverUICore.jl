@@ -9,7 +9,10 @@ functions, shared by the terminal (BrewQuiverTerm) and graphical (BrewQuiverApp)
 module BrewQuiverUICore
 
 using Unitful
+using UnitfulBrewing
+using BrewingFormulas
 using BrewQuiver
+import Printf
 import BeerJSON
 using BeerJSON: BeerJSONParser, readjson, writejson
 using Logging: Logging, AbstractLogger, LogLevel, Warn, with_logger
@@ -21,6 +24,8 @@ include("history_types.jl")
 include("session.jl")
 include("apply.jl")
 include("history.jl")
+include("format.jl")
+include("views.jl")
 
 # brew state
 export AbstractBrewStatus, Brewed, BrewFailed, isbrewed, BrewWarning
@@ -38,10 +43,18 @@ export EditCommand, CommandError, apply!
 export validate, affected, describe, revert_record, brew_effect
 export Rebrews, LayoutOnly, AllNodes, RevertRecord, Inverse, Snapshot
 export SetInitial, SetAmount, SetIngredient, SetArrow, SetArrowField, Connect, RemoveArrow,
-    Disconnect, AddNode, RemoveNode, RenameNode, SetVessel, Equip, SetView, MoveNode, Solve
+    Disconnect, AddNode, RemoveNode, RenameNode, SetVessel, Equip, SetEquipmentField, SetView,
+    MoveNode, Solve
 
 # history
 export History, undo!, redo!, canundo, canredo, undo_description, redo_description, history,
     isdirty, mergekey, begin_transaction!, commit!, abort!, transaction, intransaction
+
+# view data
+export format, display_digits, display_unit
+export NodeSummary, node_summary, node_summaries, RESULT_COLUMNS, node_color, vessel_groups,
+    results_table, ArrowSummary, arrow_summary, arrow_summaries, FieldSpec, fields,
+    solid_rows, liquor_rows, mineral_rows, node_detail, timeline_rows, vessel_bookings,
+    solution_rows
 
 end # module

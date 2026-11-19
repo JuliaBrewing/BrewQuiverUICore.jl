@@ -23,6 +23,7 @@ mergekey(c::SetArrowField) = (:arrow, c.source, c.destination, c.index, c.field)
 mergekey(c::SetView) = (:view, c.label, c.key)
 mergekey(c::MoveNode) = (:view, c.label, "position")
 mergekey(c::Equip) = (:equipment, c.vessel)
+mergekey(c::SetEquipmentField) = (:equipment, c.vessel, c.field)
 mergekey(c::SetVessel) = (:vessel, c.label)
 
 # record an edit in the history of `s`
