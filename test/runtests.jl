@@ -149,5 +149,6 @@ include("commands.jl")
 include("history.jl")
 include("views.jl")
 include("layout.jl")
+include("parse.jl")
 
 end
