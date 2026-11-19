@@ -17,8 +17,10 @@ using Logging: Logging, AbstractLogger, LogLevel, Warn, with_logger
 include("brewstate.jl")
 include("selection.jl")
 include("commands.jl")
+include("history_types.jl")
 include("session.jl")
 include("apply.jl")
+include("history.jl")
 
 # brew state
 export AbstractBrewStatus, Brewed, BrewFailed, isbrewed, BrewWarning
@@ -37,5 +39,9 @@ export validate, affected, describe, revert_record, brew_effect
 export Rebrews, LayoutOnly, AllNodes, RevertRecord, Inverse, Snapshot
 export SetInitial, SetAmount, SetIngredient, SetArrow, SetArrowField, Connect, RemoveArrow,
     Disconnect, AddNode, RemoveNode, RenameNode, SetVessel, Equip, SetView, MoveNode, Solve
+
+# history
+export History, undo!, redo!, canundo, canredo, undo_description, redo_description, history,
+    isdirty, mergekey, begin_transaction!, commit!, abort!, transaction, intransaction
 
 end # module
