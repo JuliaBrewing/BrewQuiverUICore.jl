@@ -145,4 +145,6 @@ end
     @test sprint(show, ArrowRef(:a => :b, 2)) == "ArrowRef(:a => :b, 2)"
 end
 
+include("commands.jl")
+
 end

@@ -107,6 +107,7 @@ _copy(r::BrewResult) = BrewResult(copy(r.nodes), copy(r.arrows), copy(r.order), 
 
 # the brew of `q` after a change of the nodes `from`, given the previous brew `prev`; it
 # throws if `q` does not brew
+_brew(q::Quiver, models::NamedTuple, prev, ::AllNodes) = brew(q; models)
 function _brew(q::Quiver, models::NamedTuple, prev, from)
     from = [n for n in from if haskey(q, n)]
     if prev !== nothing && !isempty(from)

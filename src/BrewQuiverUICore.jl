@@ -16,7 +16,9 @@ using Logging: Logging, AbstractLogger, LogLevel, Warn, with_logger
 
 include("brewstate.jl")
 include("selection.jl")
+include("commands.jl")
 include("session.jl")
+include("apply.jl")
 
 # brew state
 export AbstractBrewStatus, Brewed, BrewFailed, isbrewed, BrewWarning
@@ -28,5 +30,12 @@ export ItemRef, NodeRef, ArrowRef, isvalid_ref
 export Session, open_session, import_recipe, recipe_names, save!, brew!
 export quiver, result, status, changed, warnings, filepath, models
 export selection, select!, Add, deselect!, clear_selection!
+
+# commands
+export EditCommand, CommandError, apply!
+export validate, affected, describe, revert_record, brew_effect
+export Rebrews, LayoutOnly, AllNodes, RevertRecord, Inverse, Snapshot
+export SetInitial, SetAmount, SetIngredient, SetArrow, SetArrowField, Connect, RemoveArrow,
+    Disconnect, AddNode, RemoveNode, RenameNode, SetVessel, Equip, SetView, MoveNode, Solve
 
 end # module

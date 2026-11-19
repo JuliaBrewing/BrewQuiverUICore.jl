@@ -44,7 +44,57 @@ save!(s)                                      # or save!(s, path)
 - Arrows are referred to by `ArrowRef(source, destination, index)`: there may be several
   arrows between the same two nodes, kept in order.
 
-Coming next: edit commands, undo and redo with transactions, view data, and layout.
+## Edit commands
+
+Interfaces change the quiver only through commands, applied with `apply!(s, cmd)`. A command
+is a plain value: it validates itself (a refused command throws a `CommandError` with its
+description and the reason, and changes nothing), knows the nodes it affects (from which
+the brew is updated), describes itself for menus and history lists, and records what
+reverts it exactly.
+
+```julia
+apply!(s, SetAmount(:pale, 4.8u"kg"))                         # "Set :pale to 4.8 kg"
+apply!(s, SetArrowField(:kettle => :wort, 1, :time, 70u"minute"))
+apply!(s, Connect(:goldings => :kettle, Transfer(20u"g"; remaining = 5u"minute")))
+apply!(s, MoveNode(:kettle, [3, 1]))                          # layout only: no rebrew
+sol = apply!(s, Solve(:fermentor => gravity => 1.050u"sg", Amount(:pale, :crystal)))
+```
+
+| command | change | reverted by |
+|---|---|---|
+| `SetInitial(label, initial)` | the initial contents of a node | inverse |
+| `SetAmount(label, amount)` | the mass or count of a lot of one ingredient; the volume or mass of a liquor, scaled | inverse |
+| `SetIngredient(label, ingredient)` | the ingredient of a lot, of the same kind, keeping its amount | inverse |
+| `SetArrow(source, destination, index, arrow)` | one arrow | inverse |
+| `SetArrowField(source, destination, index, field, value)` | one field of an arrow, converted to its unit | inverse |
+| `Connect(source => destination, arrow = Transfer())` | adds an arrow after the others | inverse (`RemoveArrow` of the last) |
+| `RemoveArrow(source, destination, index)` | removes one arrow | inverse if it is the last, else snapshot |
+| `Disconnect(source => destination)` | removes all the arrows between two nodes | snapshot |
+| `AddNode(label, initial = Contents(); vessel)` | adds a lot or a stage | inverse (`RemoveNode`) |
+| `RemoveNode(label)` | removes a node and its arrows | snapshot |
+| `RenameNode(old, new)` | renames a node in place (the selection follows) | inverse |
+| `SetVessel(label, vessel)` | puts a node in a vessel, or none | inverse |
+| `Equip(vessel, equipment)` | attaches a `Vessel`, or removes it (`nothing`) | inverse |
+| `SetView(label, key, value)` | a key of the nodeview (`nothing` deletes it); layout only | inverse |
+| `MoveNode(label, [x, y])` | the `"position"` of a node; layout only | inverse |
+| `Solve(targets, vary)` | `solve!` with the models of the session; returns the `Solution` | snapshot |
+
+An inverse is a command; a snapshot is a copy of the whole quiver, used where an inverse
+would have to restore arrows in their order among others, or many values at once. After a
+snapshot is restored, `quiver(s)` is a new object: interfaces always get it from the
+session.
+
+The rules of the quiver (no cycles, a transformation alone, one drain) are checked by
+BrewQuiver before it changes anything; the commands check the rest: the nodes and arrows
+exist, amounts and times are not negative, fractions are between 0 and 1, two different
+ingredients do not share a name (the files refer to them by name), and the keys of the
+nodeview follow the convention below. An edit after which the quiver no longer brews is
+refused and reverted.
+
+New commands subtype `EditCommand` and implement `validate`, `affected`, `describe`,
+`revert_record`, `BrewQuiverUICore.perform!` and, for layout-only edits, `brew_effect`.
+
+Coming next: undo and redo with transactions, view data, and layout.
 
 ## The nodeview convention
 
