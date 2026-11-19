@@ -51,3 +51,41 @@ end
 
 # the JSON document of a quiver, to compare quivers
 document(q::Quiver) = (io = IOBuffer(); writejson(io, q); String(take!(io)))
+
+# a parti-gyle: the first and second runnings boiled and fermented apart, and blended into
+# two beers
+function partigyle()
+    q = Quiver()
+    add!(q, :pale, pale => 8u"kg")
+    add!(q, :strike_water, water(24u"L"; temperature = 75u"°C"))
+    add!(q, :sparge_water, water(20u"L"; temperature = 80u"°C"))
+    add!(q, :hops, cascade => 80u"g")
+    add!(q, :yeast, us05 => 2)
+    add!(q, :mash, :rested, :grain_bed; vessel = :mashtun)
+    add!(q, :kettle1, :wort1; vessel = :kettle1)
+    add!(q, :kettle2, :wort2; vessel = :kettle2)
+    add!(q, :fermentor1, :beer1; vessel = :fermentor1)
+    add!(q, :fermentor2, :beer2; vessel = :fermentor2)
+    add!(q, :strong, :light; vessel = :bright)
+    connect!(q, [:strike_water, :pale] => :mash)
+    connect!(q, :mash => :rested, MashRest())
+    connect!(q, :rested => :kettle1, Drain())
+    connect!(q, :rested => :grain_bed)
+    connect!(q, :sparge_water => :grain_bed)
+    connect!(q, :grain_bed => :kettle2, Drain())
+    connect!(q, :hops => :kettle1, Transfer(50u"g"; remaining = 60u"minute"))
+    connect!(q, :hops => :kettle2, Transfer(30u"g"; remaining = 60u"minute"))
+    connect!(q, :kettle1 => :wort1, Boil())
+    connect!(q, :kettle2 => :wort2, Boil())
+    connect!(q, :wort1 => :fermentor1, Drain())
+    connect!(q, :wort2 => :fermentor2, Drain())
+    connect!(q, :yeast => :fermentor1, Transfer(0.5))
+    connect!(q, :yeast => :fermentor2, Transfer(0.5))
+    connect!(q, :fermentor1 => :beer1, Ferment())
+    connect!(q, :fermentor2 => :beer2, Ferment())
+    connect!(q, :beer1 => :strong, Transfer(0.8))
+    connect!(q, :beer2 => :strong, Transfer(0.2))
+    connect!(q, :beer1 => :light)
+    connect!(q, :beer2 => :light)
+    return q
+end

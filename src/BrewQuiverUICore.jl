@@ -26,6 +26,7 @@ include("apply.jl")
 include("history.jl")
 include("format.jl")
 include("views.jl")
+include("layout.jl")
 
 # brew state
 export AbstractBrewStatus, Brewed, BrewFailed, isbrewed, BrewWarning
@@ -56,5 +57,8 @@ export NodeSummary, node_summary, node_summaries, RESULT_COLUMNS, node_color, ve
     results_table, ArrowSummary, arrow_summary, arrow_summaries, FieldSpec, fields,
     solid_rows, liquor_rows, mineral_rows, node_detail, timeline_rows, vessel_bookings,
     solution_rows
+
+# layout
+export layout, layout!, positions, crossings
 
 end # module

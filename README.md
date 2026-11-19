@@ -170,7 +170,23 @@ solution_rows(apply!(s, Solve(...)))
 - `SetEquipmentField(vessel, field, value)` edits one field of the equipment of a vessel,
   for forms built with `fields(equipment(q, vessel))`.
 
-Coming next: layout.
+## Layout
+
+```julia
+layout(q)          # Dict(label => [x, y]): a layered layout of a quiver
+layout!(s)         # writes it into the nodeviews, as one undoable step "Arrange the nodes"
+positions(s)       # the stored positions, and the layout for the nodes without one
+crossings(q, pos)  # the arrows that cross, to assess a layout
+```
+
+`x` is the layer of a node, the length of the longest path from a source, so that every
+arrow goes from left to right; a lot sits in the layer just before its first destination
+(the hops by the kettle). `y` is the slot in the layer, from the top: the nodes of a layer
+are ordered by the barycenters of their neighbours in the layers before and after,
+sweeping back and forth, with the nodes of the same vessel kept together and the vessels in
+their order. A single batch comes out along one row, with no crossings. Frontends draw from
+`positions(s)`, so that a quiver without positions (an imported recipe) is drawn laid out,
+and scale the abstract units to their own.
 
 ## The nodeview convention
 
