@@ -94,7 +94,52 @@ refused and reverted.
 New commands subtype `EditCommand` and implement `validate`, `affected`, `describe`,
 `revert_record`, `BrewQuiverUICore.perform!` and, for layout-only edits, `brew_effect`.
 
-Coming next: undo and redo with transactions, view data, and layout.
+## Undo and redo
+
+Each session has a `History`, in memory only (it is not written to the files), with an undo
+and a redo stack of steps. A step is a command, a transaction of several, or merged edits.
+
+```julia
+undo_description(s)          # "Set :pale to 4.8 kg", for a menu "Undo Set :pale to 4.8 kg"
+undo!(s); redo!(s)           # return the description, or nothing
+canundo(s), canredo(s)
+history(s)                   # [(description, done, saved), ...], oldest first
+isdirty(s)                   # changes not saved?
+```
+
+- **Undo** reverts the commands of the step in reverse order, with their records (inverse
+  commands or snapshots), updates the brew from the nodes they affected, and restores the
+  selection before the step. **Redo** applies the commands again and restores the selection
+  after it. A new edit clears the redo stack.
+- **Layout-only** steps (`MoveNode`, `SetView`) are undone and redone without brewing.
+- **Transactions** group several edits into one step: `begin_transaction!(s, description)`,
+  `commit!(s)`, `abort!(s)`, or `transaction(s, description) do ... end`, which aborts when
+  its block throws. The edits are applied, and brewed, as they come (a node dragged across
+  many frames); `abort!` reverts them all, restoring the quiver, the brew and the selection
+  of the beginning. Transactions opened inside another fold into the outermost; an empty one
+  leaves no step. Undo and redo are refused while a transaction is open.
+- **Merging**: an edit merges into the step on top of the undo stack when both have the
+  same `mergekey(cmd)` (the same field of the same item: the initial contents of a lot, a
+  field of an arrow, a key of a nodeview, the position of a node, the equipment of a
+  vessel), it comes within `merge_window` seconds (1.5 by default) of the previous one,
+  and no save, undo or redo came between them. Typing 4.6, 4.7, 4.8 in an amount box makes
+  one step, "Set :pale to 4.8 kg", undone back to the amount before the first.
+- **Bounded**: `History(; limit = 100)` keeps the last `limit` steps.
+- **Saved marker**: saving (or opening a file) marks the current state; `isdirty(s)` is
+  false only in that state, so undoing back to it makes the session clean again. When the
+  saved state can no longer be reached (its step dropped from the redo stack by a new edit,
+  or from the bottom of a bounded history), the session stays dirty until saved. A session
+  never saved (a new quiver, an imported recipe) is dirty.
+
+```julia
+s = open_session("bitter.quiver.json"; history = History(; limit = 200, merge_window = 1.0))
+transaction(s, "Move 2 nodes") do
+    apply!(s, MoveNode(:mash, [0, 1]))
+    apply!(s, MoveNode(:rested, [1, 1]))
+end
+```
+
+Coming next: view data, and layout.
 
 ## The nodeview convention
 

@@ -1,13 +1,6 @@
 # Applying commands to a session: validate, record what reverts them, perform, and update
 # the brew, refusing (and reverting) the edits after which the quiver no longer brews.
 
-# a command applied to a session, with what reverts it and the nodes it affected
-struct Applied
-    command::EditCommand
-    record::RevertRecord
-    affected::Union{AllNodes, Vector{Symbol}}
-end
-
 """
     apply!(s::Session, cmd::EditCommand)
 
@@ -30,6 +23,20 @@ Returns what the command gives: the `Solution` of a [`Solve`](@ref), else `nothi
 apply!(s::Session, cmd::EditCommand) = last(_apply!(s, cmd))
 
 function _apply!(s::Session, cmd::EditCommand)
+    before = copy(s.selection)
+    step, value = _do!(s, cmd)
+    try
+        _update_brew!(s, brew_effect(cmd), step.affected, step.record, cmd)
+    catch
+        s.selection = before
+        rethrow()
+    end
+    _record!(s, step, before)
+    return step, value
+end
+
+# validate, record and perform a command, and update the selection (not the brew)
+function _do!(s::Session, cmd::EditCommand)
     validate(cmd, s.quiver)
     rec = revert_record(cmd, s.quiver)
     aff = affected(cmd, s.quiver)
@@ -42,7 +49,6 @@ function _apply!(s::Session, cmd::EditCommand)
         e isa Union{ArgumentError, DomainError} || rethrow()
         throw(CommandError(describe(cmd), _message(e)))
     end
-    _update_brew!(s, brew_effect(cmd), aff, rec, cmd)
     _update_selection!(s, cmd)
     _prune_selection!(s)
     return Applied(cmd, rec, aff), value

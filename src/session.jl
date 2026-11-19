@@ -12,7 +12,8 @@ An editing session of the quiver `q`, saved at `path` (or not yet saved), brewed
   not brew;
 - the nodes whose results changed in the last step ([`changed`](@ref)), for interfaces to
   highlight, and the [`warnings`](@ref) of the brew;
-- the selection ([`selection`](@ref)): nodes and arrows.
+- the selection ([`selection`](@ref)): nodes and arrows;
+- the history of the edits ([`History`](@ref)), for [`undo!`](@ref) and [`redo!`](@ref).
 
 After an edit, the brew is updated with `rebrew!` from the earliest affected nodes, falling
 back to `brew`.
@@ -30,13 +31,15 @@ mutable struct Session
     # warnings that are not about the brew (e.g. of the import of a recipe), kept across brews
     notes::Vector{BrewWarning}
     selection::Vector{ItemRef}
+    history::History
 end
 
 function Session(q::Quiver; path::Union{Nothing, AbstractString} = nothing,
-                 models::NamedTuple = (;), notes = BrewWarning[])
+                 models::NamedTuple = (;), notes = BrewWarning[], history::History = History())
     s = Session(q, path === nothing ? nothing : String(path), models, nothing,
                 BrewFailed(ErrorException("not brewed yet")), Set{Symbol}(), BrewWarning[],
-                collect(BrewWarning, notes), ItemRef[])
+                collect(BrewWarning, notes), ItemRef[], history)
+    path === nothing || _mark_saved!(history)
     brew!(s)
     empty!(s.changed)
     return s
@@ -193,8 +196,8 @@ end
 
 A session of the quiver saved at `path` (see `writejson` of BrewQuiver).
 """
-open_session(path::AbstractString; models::NamedTuple = (;)) =
-    Session(readjson(Quiver, path); path, models)
+open_session(path::AbstractString; models::NamedTuple = (;), history::History = History()) =
+    Session(readjson(Quiver, path); path, models, history)
 
 """
     recipe_names(path)
@@ -240,6 +243,7 @@ function save!(s::Session, path::Union{Nothing, AbstractString} = s.path)
     path === nothing && throw(ArgumentError("the session has no file yet: give a path"))
     writejson(path, s.quiver; results = isbrewed(s) ? s.result : nothing)
     s.path = String(path)
+    _mark_saved!(s.history)
     return s
 end
 
