@@ -27,6 +27,28 @@
         y = parse_value(format(x))
         x isa Unitful.Quantity ? (@test y ≈ x rtol = 0.02) : (@test y == x)   # (as rounded)
     end
+    # a number without a unit, in the unit given, or that of the value it replaces
+    @test parse_value("25"; unit = u"L") == 25u"L"
+    @test parse_value("2500 mL"; unit = u"L") == 2500u"mL"           # a unit typed is kept
+    @test parse_value("25", 27.0u"L") == 25u"L"
+    @test parse_value("2500", 27.0u"L") == 2500u"L"                  # no guessing
+    @test parse_value("25L", 27.0u"L") == 25u"L"
+    @test parse_value("250", 0.3u"kg") == 250u"g"                    # as it is shown: 300 g
+    @test parse_value("5", 4.5u"kg") == 5u"kg"
+    @test parse_value("72", 75.0u"°C") == 72u"°C"
+    @test parse_value("90", 95.0u"percent") == 90u"percent"
+    @test parse_value("70", 60.0u"minute") == 70u"minute"
+    @test parse_value("5 remaining", Remaining(10u"minute")) == Remaining(5u"minute")
+    @test parse_value("at 55", At(70u"minute")) == At(55u"minute")
+    @test parse_value("2", 1.0) === 2.0                               # a count stays a number
+    @test parse_value("2", nothing) === 2.0
+    @test parse_value("", 27.0u"L") === nothing
+    @test input_unit(0.3u"kg") == u"g" && input_unit(Remaining(10u"minute")) == u"minute"
+    @test input_unit(1.0) === nothing && input_unit(nothing) === nothing
+    s2 = batch_session()
+    apply!(s2, SetAmount(:strike_water, parse_value("17", volume(quiver(s2)[:strike_water].initial))))
+    @test volume(quiver(s2)[:strike_water].initial) ≈ 17u"L"
+
     # into commands
     s = batch_session()
     apply!(s, SetArrowField(:mash, :rested, 1, :conversion, parse_value("90%")))

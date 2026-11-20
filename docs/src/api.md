@@ -120,6 +120,7 @@ format
 display_digits
 display_unit
 parse_value
+input_unit
 NodeSummary
 node_summary
 node_summaries

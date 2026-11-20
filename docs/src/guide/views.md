@@ -25,6 +25,13 @@ format.([1.0523u"sg", 23.14u"L", 0.3u"kg", 5.23u"percent", 34.6u"IBU", 4u"L/hr",
 parse_value.(["4.8 kg", "95%", "70 min", "4 L/h", "10 min remaining", "–"])
 ```
 
+A number typed without a unit is in the unit of the value it replaces, as shown
+([`input_unit`](@ref)): no unit is guessed from its size.
+
+```@example views
+parse_value("25", 27.0u"L"), parse_value("2500 mL", 27.0u"L"), parse_value("250", 0.3u"kg")
+```
+
 ## Nodes and arrows
 
 ```@example views
