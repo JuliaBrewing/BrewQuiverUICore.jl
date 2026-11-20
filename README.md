@@ -1,11 +1,14 @@
 # BrewQuiverUICore
 
-[![CI](https://github.com/JuliaBrewing/BrewQuiverUICore.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/JuliaBrewing/BrewQuiverUICore.jl/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaBrewing.github.io/BrewQuiverUICore.jl/dev/) [![CI](https://github.com/JuliaBrewing/BrewQuiverUICore.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/JuliaBrewing/BrewQuiverUICore.jl/actions/workflows/ci.yml)
 
 The frontend-neutral core of the user interfaces of
 [BrewQuiver.jl](https://github.com/JuliaBrewing/BrewQuiver.jl): plain Julia data and
 functions, with no terminal or graphics dependencies, shared by the terminal interface
 (BrewQuiverTerm.jl) and the graphical one (BrewQuiverApp.jl).
+
+The [documentation](https://JuliaBrewing.github.io/BrewQuiverUICore.jl/dev/) has the
+concepts, guides for editing, view data and writing a frontend, and the API reference.
 
 This package is **under development** and not registered. It takes BrewQuiver and its
 siblings from GitHub through the `[sources]` of `Project.toml` (Julia 1.11 or later).

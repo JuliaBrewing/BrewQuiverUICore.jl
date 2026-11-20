@@ -67,6 +67,11 @@ function node_summary(s::Session, label::Symbol)
                        node_color(s, label), vcat([w.message for w in warnings(s, label)], phwarnings),
                        label in s.changed, NodeRef(label) in s.selection)
 end
+"""
+    node_summaries(s::Session) -> Vector{NodeSummary}
+
+The [`NodeSummary`](@ref) of every node of `s`, in topological order.
+"""
 node_summaries(s::Session) = [node_summary(s, n) for n in nodes(s.quiver)]
 
 const _NO_RESULTS = (missing, missing, missing, missing, missing, missing, missing, missing, missing)
@@ -202,6 +207,12 @@ function arrow_summary(s::Session, src::Symbol, dst::Symbol, i::Integer = 1)
                         r in s.selection)
 end
 arrow_summary(s::Session, r::ArrowRef) = arrow_summary(s, r.source, r.destination, r.index)
+"""
+    arrow_summaries(s::Session) -> Vector{ArrowSummary}
+
+The [`ArrowSummary`](@ref) of every arrow of `s`, by source in topological order, then
+destination and index.
+"""
 arrow_summaries(s::Session) =
     [arrow_summary(s, n, d, i) for n in nodes(s.quiver) for d in successors(s.quiver, n)
                                for i in eachindex(s.quiver[n => d])]
