@@ -149,5 +149,7 @@ with [`save_library`](@ref)), and [`export_recipes`](@ref) writes the brew as Be
 recipes.
 
 ```@example edit
-[(r.name, format(r.needed), r.stock, r.short) for r in inventory_rows(s)]
+set_library!(s, Library())     # (an empty library: nothing in stock)
+[(r.name, r.needed isa Real ? "$(Int(r.needed)) ×" : format(r.needed), r.short ? "short" : "")
+ for r in inventory_rows(s)]
 ```
