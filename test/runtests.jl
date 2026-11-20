@@ -150,5 +150,6 @@ include("history.jl")
 include("views.jl")
 include("layout.jl")
 include("parse.jl")
+include("catalog.jl")
 
 end

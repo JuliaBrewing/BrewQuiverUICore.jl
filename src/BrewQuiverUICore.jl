@@ -28,6 +28,7 @@ include("format.jl")
 include("parse.jl")
 include("views.jl")
 include("layout.jl")
+include("catalog.jl")
 
 # brew state
 export AbstractBrewStatus, Brewed, BrewFailed, isbrewed, BrewWarning
@@ -44,7 +45,8 @@ export selection, select!, Add, deselect!, clear_selection!
 export EditCommand, CommandError, apply!
 export validate, affected, describe, revert_record, brew_effect
 export Rebrews, LayoutOnly, AllNodes, RevertRecord, Inverse, Snapshot
-export SetInitial, SetAmount, SetIngredient, SetArrow, SetArrowField, Connect, RemoveArrow,
+export SetInitial, SetAmount, SetIngredient, SetTemperature, SetWaterProfile, SetArrow,
+    SetArrowField, Connect, RemoveArrow,
     Disconnect, AddNode, RemoveNode, RenameNode, SetVessel, Equip, SetEquipmentField, SetView,
     MoveNode, Solve
 
@@ -61,5 +63,8 @@ export NodeSummary, node_summary, node_summaries, RESULT_COLUMNS, node_color, ve
 
 # layout
 export layout, layout!, positions, crossings
+
+# ingredients
+export WATER_AGENTS, library, set_library!, catalog, find_ingredient
 
 end # module

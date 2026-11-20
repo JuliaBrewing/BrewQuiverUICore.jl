@@ -65,6 +65,8 @@ sol = apply!(s, Solve(:fermentor => gravity => 1.050u"sg", Amount(:pale, :crysta
 | `SetInitial(label, initial)` | the initial contents of a node | inverse |
 | `SetAmount(label, amount)` | the mass or count of a lot of one ingredient; the volume or mass of a liquor, scaled | inverse |
 | `SetIngredient(label, ingredient)` | the ingredient of a lot, of the same kind, keeping its amount | inverse |
+| `SetTemperature(label, temperature)` | the temperature of a lot of liquor (water) | inverse |
+| `SetWaterProfile(label, profile)` | the `WaterProfile` of a lot of water, keeping its water and temperature | inverse |
 | `SetArrow(source, destination, index, arrow)` | one arrow | inverse |
 | `SetArrowField(source, destination, index, field, value)` | one field of an arrow, converted to its unit | inverse |
 | `Connect(source => destination, arrow = Transfer())` | adds an arrow after the others | inverse (`RemoveArrow` of the last) |
@@ -119,9 +121,9 @@ isdirty(s)                   # changes not saved?
   of the beginning. Transactions opened inside another fold into the outermost; an empty one
   leaves no step. Undo and redo are refused while a transaction is open.
 - **Merging**: an edit merges into the step on top of the undo stack when both have the
-  same `mergekey(cmd)` (the same field of the same item: the initial contents of a lot, a
-  field of an arrow, a key of a nodeview, the position of a node, the equipment of a
-  vessel), it comes within `merge_window` seconds (1.5 by default) of the previous one,
+  same `mergekey(cmd)` (the same aspect of the same item: the amount, ingredient,
+  temperature or water profile of a lot, a field of an arrow, a key of a nodeview, the
+  position of a node, a field of the equipment of a vessel), it comes within `merge_window` seconds (1.5 by default) of the previous one,
   and no save, undo or redo came between them. Typing 4.6, 4.7, 4.8 in an amount box makes
   one step, "Set :pale to 4.8 kg", undone back to the amount before the first.
 - **Bounded**: `History(; limit = 100)` keeps the last `limit` steps.
@@ -138,6 +140,21 @@ transaction(s, "Move 2 nodes") do
     apply!(s, MoveNode(:rested, [1, 1]))
 end
 ```
+
+## Ingredients
+
+```julia
+set_library!(s, "my_ingredients.json")       # or a Library; or open_session(path; library)
+catalog(s)                                   # name => ingredient: the quiver's, the library's, salts and acids
+i = find_ingredient(s, "munich")             # by name, ignoring case, or the only one containing it
+apply!(s, AddNode(:munich, i => 0.5u"kg"))
+apply!(s, AddNode(:gypsum, find_ingredient(s, "gypsum") => 4u"g"))
+```
+
+The catalog holds the ingredients of the lots of the quiver, those of the `Library` of the
+session (BrewQuiver's, from BeerJSON documents; not saved with the quiver), and the salts
+and acids of `WATER_AGENTS`; a name stands for one ingredient, the quiver's first, since the
+files of quivers refer to ingredients by name.
 
 ## View data
 

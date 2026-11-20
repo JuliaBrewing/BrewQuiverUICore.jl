@@ -200,7 +200,23 @@ amount(s, label) = only(solids(quiver(s)[label].initial)).amount
         undo!(s)
         @test nodeview(quiver(s), :kettle)["position"] == [1.0, 2.0]
         @test mergekey(RemoveNode(:kettle)) === nothing
-        @test mergekey(SetAmount(:pale, 1u"kg")) == mergekey(SetInitial(:pale, pale => 1u"kg"))
+        @test mergekey(SetAmount(:pale, 1u"kg")) == mergekey(SetAmount(:pale, 2u"kg"))
+        @test mergekey(SetAmount(:pale, 1u"kg")) != mergekey(SetIngredient(:pale, pale))
+
+        # an amount and an ingredient set in quick succession stay two steps, so that redo
+        # gives both (a merged step is redone by its last command alone)
+        s = history_session(; clock)
+        clock.t = 40.0
+        apply!(s, SetAmount(:pale, 4.8u"kg"))
+        mo = Fermentable("Maris Otter"; yield = 81u"percent", color = 3u"°L")
+        apply!(s, SetIngredient(:pale, mo))
+        apply!(s, SetTemperature(:strike_water, 72u"°C"))
+        apply!(s, SetAmount(:strike_water, 17u"L"))
+        @test length(history(s)) == 4
+        edited = state(s)
+        foreach(_ -> undo!(s), 1:4)
+        foreach(_ -> redo!(s), 1:4)
+        @test state(s) == edited && amount(s, :pale) ≈ 4.8u"kg"
     end
 
     @testset "Saved marker" begin

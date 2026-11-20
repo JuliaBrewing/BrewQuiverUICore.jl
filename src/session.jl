@@ -13,7 +13,8 @@ An editing session of the quiver `q`, saved at `path` (or not yet saved), brewed
 - the nodes whose results changed in the last step ([`changed`](@ref)), for interfaces to
   highlight, and the [`warnings`](@ref) of the brew;
 - the selection ([`selection`](@ref)): nodes and arrows;
-- the history of the edits ([`History`](@ref)), for [`undo!`](@ref) and [`redo!`](@ref).
+- the history of the edits ([`History`](@ref)), for [`undo!`](@ref) and [`redo!`](@ref);
+- a library of ingredients to add ([`library`](@ref), [`catalog`](@ref)).
 
 After an edit, the brew is updated with `rebrew!` from the earliest affected nodes, falling
 back to `brew`.
@@ -32,13 +33,15 @@ mutable struct Session
     notes::Vector{BrewWarning}
     selection::Vector{ItemRef}
     history::History
+    library::Library
 end
 
 function Session(q::Quiver; path::Union{Nothing, AbstractString} = nothing,
-                 models::NamedTuple = (;), notes = BrewWarning[], history::History = History())
+                 models::NamedTuple = (;), notes = BrewWarning[], history::History = History(),
+                 library::Library = Library())
     s = Session(q, path === nothing ? nothing : String(path), models, nothing,
                 BrewFailed(ErrorException("not brewed yet")), Set{Symbol}(), BrewWarning[],
-                collect(BrewWarning, notes), ItemRef[], history)
+                collect(BrewWarning, notes), ItemRef[], history, library)
     path === nothing || _mark_saved!(history)
     brew!(s)
     empty!(s.changed)
@@ -196,8 +199,9 @@ end
 
 A session of the quiver saved at `path` (see `writejson` of BrewQuiver).
 """
-open_session(path::AbstractString; models::NamedTuple = (;), history::History = History()) =
-    Session(readjson(Quiver, path); path, models, history)
+open_session(path::AbstractString; models::NamedTuple = (;), history::History = History(),
+             library::Library = Library()) =
+    Session(readjson(Quiver, path); path, models, history, library)
 
 """
     recipe_names(path)
@@ -212,15 +216,17 @@ recipe_names(path::AbstractString) =
 
 A new, unsaved session of the quiver of a recipe of the BeerJSON document at `path`: the
 recipe `which`, by index or by name (see [`recipe_names`](@ref)). The keyword arguments go
-to `Quiver(recipe; ...)` of BrewQuiver (e.g. `calibration`, `library`). What the import
-warns about is kept in the [`warnings`](@ref) of the session.
+to `Quiver(recipe; ...)` of BrewQuiver (e.g. `calibration`); a `library` completes the
+records of the recipe there, and becomes the [`library`](@ref) of the session. What the
+import warns about is kept in the [`warnings`](@ref) of the session.
 """
 function import_recipe(path::AbstractString, which::Union{Integer, AbstractString} = 1;
-                       models::NamedTuple = (;), kwargs...)
+                       models::NamedTuple = (;), library::Union{Nothing, Library} = nothing, kwargs...)
     rs = something(readjson(BeerJSONParser, path).beerjson.recipes, [])
     r = _pick(rs, which, path)
-    q, messages = collecting(() -> Quiver(r; kwargs...))
-    return Session(q; models, notes = [BrewWarning(nothing, m) for m in messages])
+    q, messages = collecting(() -> library === nothing ? Quiver(r; kwargs...) : Quiver(r; library, kwargs...))
+    return Session(q; models, notes = [BrewWarning(nothing, m) for m in messages],
+                   library = something(library, Library()))
 end
 
 function _pick(rs, i::Integer, path)
