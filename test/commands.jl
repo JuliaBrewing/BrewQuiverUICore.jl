@@ -15,6 +15,12 @@ const EDITS = [
     SetAmount(:yeast, 2) => s -> only(solids(quiver(s)[:yeast].initial)).amount == 2,
     SetIngredient(:pale, Fermentable("Maris Otter"; yield = 81u"percent", color = 3u"°L")) =>
         s -> only(solids(quiver(s)[:pale].initial)).ingredient.name == "Maris Otter",
+    SetTemperature(:strike_water, 72u"°C") =>
+        s -> liquor(quiver(s)[:strike_water].initial).temperature ≈ 72u"°C",
+    SetWaterProfile(:strike_water, WaterProfile(calcium = 50u"mg/L", sulfate = 100u"mg/L")) =>
+        s -> profile(quiver(s)[:strike_water].initial).calcium ≈ 50u"mg/L" &&
+             isapprox(volume(quiver(s)[:strike_water].initial), 16u"L"; rtol = 1e-3) &&
+             liquor(quiver(s)[:strike_water].initial).temperature ≈ 75u"°C",
     SetArrow(:kettle, :wort, 1, Boil(time = 90u"minute")) =>
         s -> quiver(s)[:kettle => :wort, 1].time ≈ 90u"minute",
     SetArrowField(:kettle => :wort, 1, :time, 1.5u"hr") =>
@@ -124,6 +130,8 @@ end
         @test describe(RemoveNode(:x)) == "Remove :x"
         @test describe(RenameNode(:x, :y)) == "Rename :x to :y"
         @test describe(SetVessel(:x, :kettle)) == "Put :x in the kettle"
+        @test describe(SetTemperature(:w, 75u"°C")) == "Set the temperature of :w to 75 °C"
+        @test describe(SetWaterProfile(:w, WaterProfile())) == "Set the water profile of :w"
         @test describe(SetVessel(:x, nothing)) == "Take :x out of its vessel"
         @test describe(Equip(:kettle, Vessel())) == "Equip the kettle"
         @test describe(Equip(:kettle, nothing)) == "Remove the equipment of the kettle"
@@ -175,6 +183,9 @@ end
             MoveNode(:kettle, [1.0, NaN]) => "[x, y]",
             Solve(:nowhere => ibu => 30u"IBU", Amount(:cascade)) => "no node",
             Solve(:wort => ibu => 30u"IBU", Setting(:kettle => :fermentor, :time)) => "no arrow",
+            SetTemperature(:pale, 70u"°C") => "not a lot of water or of a liquor",
+            SetTemperature(:kettle, 70u"°C") => "not a lot of water or of a liquor",
+            SetWaterProfile(:pale, WaterProfile()) => "not a lot of water or of a liquor",
             # the quiver would no longer brew
             SetAmount(:strike_water, 1u"L") => "would no longer brew: not enough liquid",
             Disconnect(:yeast, :fermentor) => "would no longer brew: there is no culture",

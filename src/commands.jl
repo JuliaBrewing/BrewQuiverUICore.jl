@@ -289,6 +289,64 @@ perform!(q::Quiver, c::SetIngredient) = (q[c.label] = _with_ingredient(c, q[c.la
 _with_ingredient(c::SetIngredient, x::Contents) =
     (p = only(x.solids); _lot(Portion(c.ingredient, p.amount; timing = p.timing)))
 
+# the liquor of a lot of liquor only (water, a salt or an acid dissolved), or a refusal
+function _liquor_lot(c, q, label)
+    x = q[label].initial
+    (isempty(x.solids) && !iszero(x.liquor)) || _refuse(c, ":$label is not a lot of water or of a liquor")
+    return x.liquor
+end
+
+"""
+    SetTemperature(label, temperature)
+
+Sets the temperature of the lot of liquor `label` (e.g. the strike water). Reverted by its
+[`Inverse`](@ref).
+"""
+struct SetTemperature <: EditCommand
+    label::Symbol
+    temperature::Unitful.Temperature
+end
+
+describe(c::SetTemperature) = "Set the temperature of :$(c.label) to $(_fmt(c.temperature))"
+function validate(c::SetTemperature, q::Quiver)
+    _check_node(c, q, c.label)
+    _liquor_lot(c, q, c.label)
+    return nothing
+end
+affected(c::SetTemperature, q::Quiver) = [c.label]
+revert_record(c::SetTemperature, q::Quiver) = Inverse(SetInitial(c.label, q[c.label].initial))
+perform!(q::Quiver, c::SetTemperature) =
+    (q[c.label] = with_temperature(q[c.label].initial, c.temperature); nothing)
+
+"""
+    SetWaterProfile(label, profile)
+
+Sets the `WaterProfile` of the lot of water `label`, keeping its water and temperature: its
+minerals are those of the profile for its volume. Reverted by its [`Inverse`](@ref).
+"""
+struct SetWaterProfile <: EditCommand
+    label::Symbol
+    profile::WaterProfile
+end
+
+describe(c::SetWaterProfile) = "Set the water profile of :$(c.label)"
+function validate(c::SetWaterProfile, q::Quiver)
+    _check_node(c, q, c.label)
+    l = _liquor_lot(c, q, c.label)
+    (iszero(l.extract) && iszero(l.alcohol) && !iszero(l.water)) ||
+        _refuse(c, ":$(c.label) is not a lot of water")
+    return nothing
+end
+affected(c::SetWaterProfile, q::Quiver) = [c.label]
+revert_record(c::SetWaterProfile, q::Quiver) = Inverse(SetInitial(c.label, q[c.label].initial))
+function perform!(q::Quiver, c::SetWaterProfile)
+    x = q[c.label].initial
+    l = x.liquor
+    q[c.label] = Liquor(; water = l.water, temperature = l.temperature,
+                        minerals = Minerals(c.profile, uconvert(u"L", volume(x))))
+    return nothing
+end
+
 # ---------------------------------------------------------------------------------------
 # arrows
 

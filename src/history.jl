@@ -17,7 +17,13 @@ Commands with a key must set the whole of what it names, so that the last one al
 the step.
 """
 mergekey(::EditCommand) = nothing
-mergekey(c::Union{SetInitial, SetAmount, SetIngredient}) = (:initial, c.label)
+# (each aspect of a lot its own key: a merged step is redone by its last command alone, so
+# an amount and an ingredient set in quick succession must stay two steps)
+mergekey(c::SetInitial) = (:initial, c.label)
+mergekey(c::SetAmount) = (:amount, c.label)
+mergekey(c::SetIngredient) = (:ingredient, c.label)
+mergekey(c::SetTemperature) = (:temperature, c.label)
+mergekey(c::SetWaterProfile) = (:profile, c.label)
 mergekey(c::SetArrow) = (:arrow, c.source, c.destination, c.index)
 mergekey(c::SetArrowField) = (:arrow, c.source, c.destination, c.index, c.field)
 mergekey(c::SetView) = (:view, c.label, c.key)
