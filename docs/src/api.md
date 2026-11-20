@@ -150,7 +150,7 @@ positions
 crossings
 ```
 
-## Ingredients
+## Ingredients and inventory
 
 ```@docs
 WATER_AGENTS
@@ -158,4 +158,17 @@ library
 set_library!
 catalog
 find_ingredient
+inventory_rows
+consume_stock!
+save_library
+export_recipes
+```
+
+## Models
+
+```@docs
+SetModels
+MODEL_CHOICES
+models_in_use
+set_model
 ```

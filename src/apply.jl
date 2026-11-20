@@ -38,7 +38,7 @@ end
 # validate, record and perform a command, and update the selection (not the brew)
 function _do!(s::Session, cmd::EditCommand)
     validate(cmd, s.quiver)
-    rec = revert_record(cmd, s.quiver)
+    rec = _revert_record(s, cmd)
     aff = affected(cmd, s.quiver)
     value = try
         perform!(s, cmd)
@@ -53,6 +53,10 @@ function _do!(s::Session, cmd::EditCommand)
     _prune_selection!(s)
     return Applied(cmd, rec, aff), value
 end
+
+# what reverts `cmd` in the session: its record on the quiver, or more for the commands that
+# change the session itself
+_revert_record(s::Session, cmd::EditCommand) = revert_record(cmd, s.quiver)
 
 function _update_brew!(s::Session, ::Rebrews, aff, rec, cmd)
     brewed = isbrewed(s)

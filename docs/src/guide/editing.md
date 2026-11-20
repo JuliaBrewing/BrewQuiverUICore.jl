@@ -132,3 +132,24 @@ apply!(s, AddNode(:gypsum, find_ingredient(s, "gyps") => 4u"g"))
 apply!(s, Connect(:gypsum => :mash))
 format(profile(result(s)[:mash]).sulfate)
 ```
+
+## Models, inventory and export
+
+The models of BrewingFormulas a session brews with are changed by a command, so that the
+change can be undone ([`SetModels`](@ref), [`set_model`](@ref), [`MODEL_CHOICES`](@ref)):
+
+```@example edit
+apply!(s, set_model(s, :bitterness, Rager()))
+models_in_use(s).bitterness, format(node_summary(s, :wort).ibu)
+```
+
+[`inventory_rows`](@ref) compares what the brew needs with the stock of the library,
+[`consume_stock!`](@ref) takes it from the stock (not undoable: it changes the library, saved
+with [`save_library`](@ref)), and [`export_recipes`](@ref) writes the brew as BeerJSON
+recipes.
+
+```@example edit
+set_library!(s, Library())     # (an empty library: nothing in stock)
+[(r.name, r.needed isa Real ? "$(Int(r.needed)) ×" : format(r.needed), r.short ? "short" : "")
+ for r in inventory_rows(s)]
+```
