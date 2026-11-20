@@ -33,17 +33,24 @@ Base.showerror(io::IO, e::CommandError) = print(io, e.description, ": ", e.messa
 
 _refuse(cmd::EditCommand, msg::AbstractString) = throw(CommandError(describe(cmd), msg))
 
-"""
-    Rebrews(), LayoutOnly()
-
-The effect of a command on the brew ([`brew_effect`](@ref)): it changes the brew, which is
-updated after it, or it only changes the layout (the positions of the nodes, their view),
-and the brew is kept.
-"""
+# The effect of a command on the brew: Rebrews or LayoutOnly
 abstract type BrewEffect end
+
+"""
+    Rebrews()
+
+The [`brew_effect`](@ref) of the commands that change the brew (the default): it is updated
+after them.
+"""
 struct Rebrews <: BrewEffect end
+
+"""
+    LayoutOnly()
+
+The [`brew_effect`](@ref) of the commands that only change the layout (the positions of the
+nodes, their view): the brew is kept, and nothing is marked changed.
+"""
 struct LayoutOnly <: BrewEffect end
-@doc (@doc Rebrews) LayoutOnly
 
 """
     brew_effect(cmd::EditCommand)
