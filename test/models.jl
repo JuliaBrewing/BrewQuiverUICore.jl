@@ -39,7 +39,7 @@ end
     lib = Library()
     push!(lib, pale; stock = 3u"kg")
     push!(lib, cascade; stock = 100u"g")
-    push!(lib, us05)
+    push!(lib, us05; stock = 2)
     set_library!(s, lib)
     rows = inventory_rows(s)
     @test [r.name for r in rows] == sort([r.name for r in rows])
@@ -55,6 +55,7 @@ end
     mktempdir() do dir
         f = save_library(s, joinpath(dir, "lib.json"))
         @test stock(Library(f), "Cascade") ≈ 50u"g"
+        @test stock(Library(f), "US-05") == 1                    # a count of packs, kept
         r = export_recipes(s, joinpath(dir, "recipes.json"))
         doc = readjson(BeerJSONParser, r).beerjson
         @test length(doc.recipes) == length(products(result(s), quiver(s)))
