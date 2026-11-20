@@ -29,6 +29,8 @@ include("parse.jl")
 include("views.jl")
 include("layout.jl")
 include("catalog.jl")
+include("models.jl")
+include("inventory.jl")
 
 # brew state
 export AbstractBrewStatus, Brewed, BrewFailed, isbrewed, BrewWarning
@@ -66,5 +68,9 @@ export layout, layout!, positions, crossings
 
 # ingredients
 export WATER_AGENTS, library, set_library!, catalog, find_ingredient
+export inventory_rows, consume_stock!, save_library, export_recipes
+
+# models
+export SetModels, MODEL_CHOICES, models_in_use, set_model
 
 end # module

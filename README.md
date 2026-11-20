@@ -159,6 +159,15 @@ session (BrewQuiver's, from BeerJSON documents; not saved with the quiver), and 
 and acids of `WATER_AGENTS`; a name stands for one ingredient, the quiver's first, since the
 files of quivers refer to ingredients by name.
 
+## Models, inventory and export
+
+```julia
+apply!(s, set_model(s, :bitterness, Rager()))   # undoable; MODEL_CHOICES lists the models
+inventory_rows(s)                               # what the brew needs, with the library's stock
+consume_stock!(s); save_library(s, "my_ingredients.json")
+export_recipes(s, "recipes.json")               # BeerJSON, a recipe per product
+```
+
 ## View data
 
 Plain data for the frontends to render, with Unitful quantities (formatted by the frontend

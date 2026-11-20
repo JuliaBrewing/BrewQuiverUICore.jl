@@ -151,5 +151,6 @@ include("views.jl")
 include("layout.jl")
 include("parse.jl")
 include("catalog.jl")
+include("models.jl")
 
 end
