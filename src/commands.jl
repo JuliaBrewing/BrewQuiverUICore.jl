@@ -601,12 +601,7 @@ describe(c::SetVessel) =
 validate(c::SetVessel, q::Quiver) = _check_node(c, q, c.label)
 affected(c::SetVessel, q::Quiver) = [c.label]
 revert_record(c::SetVessel, q::Quiver) = Inverse(SetVessel(c.label, vessel(q, c.label)))
-function perform!(q::Quiver, c::SetVessel)
-    # (no setter in BrewQuiver: replace the node in place, keeping its code and arrows)
-    n = q[c.label]
-    q.graph[c.label] = Node(n.initial, c.vessel, n.view)
-    return nothing
-end
+perform!(q::Quiver, c::SetVessel) = (vessel!(q, c.label, c.vessel); nothing)
 
 # ---------------------------------------------------------------------------------------
 # equipment
@@ -628,11 +623,8 @@ validate(c::Equip, q::Quiver) =
     isempty(String(c.vessel)) && _refuse(c, "the name of a vessel cannot be empty")
 affected(c::Equip, q::Quiver) = [n for n in nodes(q) if vessel(q, n) === c.vessel]
 revert_record(c::Equip, q::Quiver) = Inverse(Equip(c.vessel, equipment(q, c.vessel)))
-function perform!(q::Quiver, c::Equip)
-    # (no way to remove equipment in BrewQuiver: delete it from the quiver)
-    c.equipment === nothing ? delete!(q.equipment, c.vessel) : equip!(q, c.vessel, c.equipment)
-    return nothing
-end
+perform!(q::Quiver, c::Equip) =
+    (c.equipment === nothing ? unequip!(q, c.vessel) : equip!(q, c.vessel, c.equipment); nothing)
 
 """
     SetEquipmentField(vessel, field, value)
