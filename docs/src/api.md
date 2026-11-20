@@ -173,3 +173,21 @@ MODEL_CHOICES
 models_in_use
 set_model
 ```
+
+## Units
+
+```@docs
+UNIT_CHOICES
+UnitPreferences
+with_unit
+unit_role
+preferred_unit
+units
+set_units!
+units_path
+load_units
+save_units
+contents_text
+amount_role
+unit_symbol
+```

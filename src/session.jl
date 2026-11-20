@@ -14,7 +14,8 @@ An editing session of the quiver `q`, saved at `path` (or not yet saved), brewed
   highlight, and the [`warnings`](@ref) of the brew;
 - the selection ([`selection`](@ref)): nodes and arrows;
 - the history of the edits ([`History`](@ref)), for [`undo!`](@ref) and [`redo!`](@ref);
-- a library of ingredients to add ([`library`](@ref), [`catalog`](@ref)).
+- a library of ingredients to add ([`library`](@ref), [`catalog`](@ref));
+- the units its quantities are shown and typed in ([`units`](@ref)).
 
 After an edit, the brew is updated with `rebrew!` from the earliest affected nodes, falling
 back to `brew`.
@@ -34,14 +35,15 @@ mutable struct Session
     selection::Vector{ItemRef}
     history::History
     library::Library
+    units::UnitPreferences
 end
 
 function Session(q::Quiver; path::Union{Nothing, AbstractString} = nothing,
                  models::NamedTuple = (;), notes = BrewWarning[], history::History = History(),
-                 library::Library = Library())
+                 library::Library = Library(), units::UnitPreferences = UnitPreferences())
     s = Session(q, path === nothing ? nothing : String(path), models, nothing,
                 BrewFailed(ErrorException("not brewed yet")), Set{Symbol}(), BrewWarning[],
-                collect(BrewWarning, notes), ItemRef[], history, library)
+                collect(BrewWarning, notes), ItemRef[], history, library, units)
     path === nothing || _mark_saved!(history)
     brew!(s)
     empty!(s.changed)
