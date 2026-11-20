@@ -24,7 +24,12 @@ display_unit(x::Unitful.Quantity) = unit(x)
 display_unit(x::Unitful.Mass) = (m = abs(x); m ≥ 1u"kg" ? u"kg" : m ≥ 1u"g" || iszero(m) ? u"g" : u"mg")
 display_unit(x::Unitful.Volume) = abs(x) ≥ 1u"L" || iszero(x) ? u"L" : u"mL"
 
-# the symbol of a unit, as shown: "mg/L" for mg L^-1
+"""
+    unit_symbol(unit)
+
+The symbol of `unit` as [`format`](@ref) shows it: `"mg/L"` for mg L^-1, `"L/h"`, `"min"`,
+`"%"`.
+"""
 function unit_symbol(u::Unitful.Units)
     num, den = String[], String[]
     for t in split(string(u), ' ')

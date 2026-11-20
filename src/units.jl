@@ -42,7 +42,12 @@ unit_role(::Culture) = :culture
 unit_role(::Union{Salt, Acid}) = :agent
 unit_role(x) = nothing
 
-# the role of the amount of a lot of contents: that of its ingredient, else of its quantity
+"""
+    amount_role(contents) -> Union{Symbol, Nothing}
+
+The role of the amount of a lot (see [`unit_role`](@ref)): that of its ingredient for a lot
+of one, `:agent` for a salt or an acid dissolved, else `nothing`.
+"""
 function amount_role(c::Contents)
     length(c.solids) == 1 && only(c.solids) isa Portion && return unit_role(only(c.solids).ingredient)
     isempty(c.solids) && iszero(c.liquor.water) && return :agent
