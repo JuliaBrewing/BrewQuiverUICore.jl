@@ -57,7 +57,7 @@ export History, undo!, redo!, canundo, canredo, undo_description, redo_descripti
     isdirty, mergekey, begin_transaction!, commit!, abort!, transaction, intransaction
 
 # view data
-export format, display_digits, display_unit, parse_value
+export format, display_digits, display_unit, parse_value, input_unit
 export NodeSummary, node_summary, node_summaries, RESULT_COLUMNS, node_color, vessel_groups,
     results_table, ArrowSummary, arrow_summary, arrow_summaries, FieldSpec, fields,
     solid_rows, liquor_rows, mineral_rows, node_detail, timeline_rows, vessel_bookings,
