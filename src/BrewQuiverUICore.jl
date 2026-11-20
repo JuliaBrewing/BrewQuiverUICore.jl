@@ -13,6 +13,7 @@ using UnitfulBrewing
 using BrewingFormulas
 using BrewQuiver
 import Printf
+import TOML
 import BeerJSON
 using BeerJSON: BeerJSONParser, readjson, writejson
 using Logging: Logging, AbstractLogger, LogLevel, Warn, with_logger
@@ -21,6 +22,7 @@ include("brewstate.jl")
 include("selection.jl")
 include("commands.jl")
 include("history_types.jl")
+include("unit_types.jl")
 include("session.jl")
 include("apply.jl")
 include("history.jl")
@@ -31,6 +33,7 @@ include("layout.jl")
 include("catalog.jl")
 include("models.jl")
 include("inventory.jl")
+include("units.jl")
 
 # brew state
 export AbstractBrewStatus, Brewed, BrewFailed, isbrewed, BrewWarning
@@ -72,5 +75,9 @@ export inventory_rows, consume_stock!, save_library, export_recipes
 
 # models
 export SetModels, MODEL_CHOICES, models_in_use, set_model
+
+# units
+export UNIT_CHOICES, UnitPreferences, with_unit, unit_role, preferred_unit, units, set_units!,
+    units_path, load_units, save_units, contents_text
 
 end # module

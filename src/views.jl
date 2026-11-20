@@ -63,7 +63,7 @@ function node_summary(s::Session, label::Symbol)
     initial = q[label].initial
     values, phwarnings = _results(s, label)
     return NodeSummary(label, vessel(q, label), kind,
-                       kind === :lot ? _fmt_contents(initial) : "", values...,
+                       kind === :lot ? contents_text(s, initial) : "", values...,
                        node_color(s, label), vcat([w.message for w in warnings(s, label)], phwarnings),
                        label in s.changed, NodeRef(label) in s.selection)
 end

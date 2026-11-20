@@ -54,7 +54,7 @@
         b = node_summary(s, :bottles)
         @test b.kind == :product && b.abv > 4u"percent" && b.carbonation > 2u"vols"
         p = node_summary(s, :pale)
-        @test p.kind == :lot && p.contents == "4.5 kg Pale ale malt"
+        @test p.kind == :lot && p.contents == "4.50 kg Pale ale malt"
         @test p.volume === missing && p.gravity === missing
         @test p.color == srm_hex(3u"°L")                   # the color of the malt
         m = node_summary(s, :mash)

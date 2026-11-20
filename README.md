@@ -168,6 +168,20 @@ consume_stock!(s); save_library(s, "my_ingredients.json")
 export_recipes(s, "recipes.json")               # BeerJSON, a recipe per product
 ```
 
+## Preferred units
+
+```julia
+set_units!(s, load_units())        # ~/.config/brewquiver/units.toml, shared by the frontends
+UnitPreferences(fermentable = u"lb", hop = u"oz", volume = u"gal", temperature = u"°F")
+format(s, x; role = :hop)          # shown in the preferred unit of the role
+parse_value(s, "10", current; role = :fermentable)   # a bare number in the unit shown
+```
+
+Each role (malts, hops, cultures, salts, other masses, volumes, temperatures, gravities,
+colors, absorptions, rates) has its unit, from `UNIT_CHOICES`; masses and volumes may be
+`:auto` (kg or g, L or mL by size). A number typed without a unit is in the unit shown, or
+for an empty field in the preferred unit of its role; no unit is guessed from its size.
+
 ## View data
 
 Plain data for the frontends to render, with Unitful quantities (formatted by the frontend

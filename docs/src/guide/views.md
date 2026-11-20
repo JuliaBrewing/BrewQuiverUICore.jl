@@ -32,6 +32,30 @@ A number typed without a unit is in the unit of the value it replaces, as shown
 parse_value("25", 27.0u"L"), parse_value("2500 mL", 27.0u"L"), parse_value("250", 0.3u"kg")
 ```
 
+## Preferred units
+
+Each kind of quantity (a *role*: the amounts of malts, of hops, of cultures, of salts;
+volumes, temperatures, gravities, colors, absorptions, rates) is shown and typed in the
+unit of the [`UnitPreferences`](@ref) of the session ([`UNIT_CHOICES`](@ref) lists the
+choices). Frontends read them from a configuration file shared by all of them
+([`load_units`](@ref), [`save_units`](@ref), [`units_path`](@ref)).
+
+```@example views
+us = UnitPreferences(fermentable = u"lb", hop = u"oz", volume = u"gal", temperature = u"°F",
+                     gravity = u"°P")
+s2 = Session(single_batch(); units = us)
+x = node_summary(s2, :wort)
+(node_summary(s2, :pale).contents, format(s2, x.volume), format(s2, x.gravity),
+ format(s2, x.temperature))
+```
+
+A number typed without a unit is in the unit shown, or for an empty field in the preferred
+unit of its role:
+
+```@example views
+(parse_value(s2, "10", 4.5u"kg"; role = :fermentable), parse_value(s2, "1.5", nothing; role = :hop))
+```
+
 ## Nodes and arrows
 
 ```@example views
