@@ -139,6 +139,7 @@ function _fmt(x::Unitful.Quantity)
     return string(isinteger(v) ? Int(v) : v, " ", unit(x))
 end
 _fmt(x::Real) = (v = round(x; sigdigits = 4); string(isinteger(v) ? Int(v) : v))
+_fmt(x::Bool) = string(x)
 _fmt(::Nothing) = "nothing"
 _fmt(x::Symbol) = ":$x"
 _fmt(x) = string(x)
@@ -230,9 +231,9 @@ Sets the amount of the lot `label`: the mass or count of its ingredient (a lot o
 ingredient), or the volume or mass of its liquor (water, a salt, an acid), scaled with
 everything in it (its minerals, ...). Reverted by its [`Inverse`](@ref).
 """
-struct SetAmount{A <: Union{Unitful.Quantity, Real}} <: EditCommand
+struct SetAmount <: EditCommand
     label::Symbol
-    amount::A
+    amount::Any            # (any value typed: what is not an amount is refused)
 end
 
 describe(c::SetAmount) = "Set :$(c.label) to $(_fmt(c.amount))"
@@ -246,6 +247,8 @@ revert_record(c::SetAmount, q::Quiver) = Inverse(SetInitial(c.label, q[c.label].
 perform!(q::Quiver, c::SetAmount) = (q[c.label] = _with_amount(c, q[c.label].initial); nothing)
 
 function _with_amount(c::SetAmount, x::Contents)
+    c.amount isa Union{Unitful.Quantity, Real} && !(c.amount isa Bool) ||
+        _refuse(c, "an amount is a mass, a volume or a count, e.g. 4.5 kg, 16 L, 2")
     _negative(c.amount) && _refuse(c, "an amount cannot be negative")
     if iszero(x.liquor) && length(x.solids) == 1 && only(x.solids) isa Portion
         p = only(x.solids)
@@ -311,12 +314,14 @@ Sets the temperature of the lot of liquor `label` (e.g. the strike water). Rever
 """
 struct SetTemperature <: EditCommand
     label::Symbol
-    temperature::Unitful.Temperature
+    temperature::Any       # (any value typed: what is not a temperature is refused)
 end
 
 describe(c::SetTemperature) = "Set the temperature of :$(c.label) to $(_fmt(c.temperature))"
 function validate(c::SetTemperature, q::Quiver)
     _check_node(c, q, c.label)
+    c.temperature isa Unitful.Temperature ||
+        _refuse(c, "a temperature is in °C or °F, e.g. 70 °C, 70 C, 158 F")
     _liquor_lot(c, q, c.label)
     return nothing
 end

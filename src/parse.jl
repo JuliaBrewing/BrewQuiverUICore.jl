@@ -1,9 +1,21 @@
 # Parsing what a user types into a value: the inverse of `format`, for the text boxes and
 # prompts of the frontends.
 
-# the symbols shown by `format` that Unitful does not read, and their units
-const _UNIT_WORDS = Dict("%" => "percent", "min" => "minute", "mins" => "minute", "h" => "hr",
-                         "hrs" => "hr", "days" => "d", "day" => "d", "l" => "L", "ml" => "mL")
+# the symbols shown by `format` that Unitful does not read, and the aliases of units that
+# need a symbol hard to type (°C, °F, °P, °L) or that brewers write otherwise; a letter that
+# Unitful reads as another unit (C coulomb, F farad, P poise) means here the unit of brewing
+const _UNIT_WORDS = Dict(
+    "%" => "percent", "min" => "minute", "mins" => "minute", "h" => "hr", "hrs" => "hr",
+    "days" => "d", "day" => "d", "l" => "L", "ml" => "mL",
+    # temperatures
+    "C" => "°C", "c" => "°C", "degC" => "°C", "ºC" => "°C", "°c" => "°C",
+    "F" => "°F", "f" => "°F", "degF" => "°F", "ºF" => "°F", "°f" => "°F",
+    # gravities and colors
+    "P" => "°P", "plato" => "°P", "Plato" => "°P", "degP" => "°P", "ºP" => "°P",
+    "brix" => "Brix", "SG" => "sg", "srm" => "SRM", "ebc" => "EBC",
+    "lovibond" => "°L", "Lovibond" => "°L", "degL" => "°L", "ºL" => "°L",
+    # others
+    "ibu" => "IBU", "vol" => "vols", "lbs" => "lb", "ppm" => "mg/L")
 
 const _NUMBER = r"^\s*([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)\s*(.*?)\s*$"
 
@@ -13,7 +25,9 @@ const _NUMBER = r"^\s*([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)\s*(.*?)\s*$"
 
 What a user typed, as a value for an edit command: a quantity (`"4.8 kg"`, `"1.050 sg"`,
 `"95%"`, `"70 min"`, `"4 L/h"`, `"80 °C"`, `"2.4 vols"`, any unit of Unitful or
-UnitfulBrewing), a plain number (`"2"`, `"0.95"`), `nothing` (`""`, `"-"`, `"–"`,
+UnitfulBrewing, and aliases for the units with symbols hard to type or that brewers write
+otherwise: `C` and `F` for °C and °F (`"70 C"`, `"158F"`), `P` or `plato` for °P,
+`lovibond` for °L, `srm`, `ebc`, `brix`, `ibu`, `SG`, `vol`, `lbs`, `ppm`), a plain number (`"2"`, `"0.95"`), `nothing` (`""`, `"-"`, `"–"`,
 `"nothing"`, `"none"`: leave it to the vessel or the default), a timing
 (`"10 min remaining"`, `"at 70 min"`), or `true`/`false`. It reads what [`format`](@ref)
 writes. Throws an `ArgumentError` with a readable message otherwise.
