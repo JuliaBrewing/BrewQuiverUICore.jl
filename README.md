@@ -211,7 +211,8 @@ solution_rows(apply!(s, Solve(...)))
 - The mash pH is given for the nodes with grain still to mash, with its warnings (e.g. a
   dark grain without its distilled water pH) among those of the node.
 - `parse_value(text)` reads what a user types, the inverse of `format`: `"4.8 kg"`,
-  `"95%"`, `"70 min"`, `"4 L/h"`, `"1.050 sg"`, any unit of Unitful or UnitfulBrewing, a
+  `"95%"`, `"70 min"`, `"4 L/h"`, `"1.050 sg"`, any unit of Unitful or UnitfulBrewing (with
+  aliases for symbols hard to type: `70 C`, `158 F`, `12 P`), a
   plain number, a timing (`"10 min remaining"`, `"at 70 min"`), or nothing (`""`, `"–"`),
   for the text boxes of the frontends; the commands check and convert the value.
 - `SetEquipmentField(vessel, field, value)` edits one field of the equipment of a vessel,
