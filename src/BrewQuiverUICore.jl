@@ -31,6 +31,8 @@ include("parse.jl")
 include("views.jl")
 include("layout.jl")
 include("catalog.jl")
+include("starter.jl")
+include("templates.jl")
 include("models.jl")
 include("inventory.jl")
 include("units.jl")
@@ -70,7 +72,8 @@ export NodeSummary, node_summary, node_summaries, RESULT_COLUMNS, node_color, ve
 export layout, layout!, positions, crossings
 
 # ingredients
-export WATER_AGENTS, library, set_library!, catalog, find_ingredient
+export WATER_AGENTS, STARTER_LIBRARY, library, set_library!, catalog, find_ingredient,
+    search_ingredients, TEMPLATES, template
 export inventory_rows, consume_stock!, save_library, export_recipes
 
 # models

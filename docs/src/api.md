@@ -159,10 +159,19 @@ library
 set_library!
 catalog
 find_ingredient
+STARTER_LIBRARY
+search_ingredients
 inventory_rows
 consume_stock!
 save_library
 export_recipes
+```
+
+## Templates
+
+```@docs
+TEMPLATES
+template
 ```
 
 ## Models
