@@ -59,20 +59,22 @@
     @test parse_value("10 lbs") == 10u"lb" && parse_value("150 ppm") == 150u"mg/L"
     @test parse_value("72", 75.0u"°C") == 72u"°C"
 
-    # what is typed of the wrong kind is refused by the commands, never thrown otherwise
+    # what is typed of the wrong kind is refused, when the command is made or applied, with a
+    # CommandError: never another error
     s3 = batch_session()
     wrong = Any[nothing, true, 70u"m", 3u"kg", Remaining(5u"minute"), "text"]
-    for v in wrong
-        for cmd in (SetTemperature(:strike_water, v), SetAmount(:pale, v), SetAmount(:strike_water, v),
-                    SetArrowField(:kettle, :wort, 1, :stand_temperature, v),
-                    SetEquipmentField(:kettle, :capacity, v))
-            v === nothing && cmd isa SetArrowField && continue      # (nothing: back to the default)
-            v === nothing && cmd isa SetEquipmentField && continue
-            v isa Unitful.Mass && cmd isa SetAmount && continue       # (a mass of malt or of water)
-            @test_throws CommandError apply!(s3, cmd)
-        end
+    makers = [v -> SetTemperature(:strike_water, v), v -> SetAmount(:pale, v), v -> SetAmount(:strike_water, v),
+              v -> SetArrowField(:kettle, :wort, 1, :stand_temperature, v),
+              v -> SetEquipmentField(:kettle, :capacity, v)]
+    for v in wrong, (i, make) in enumerate(makers)
+        v === nothing && i ≥ 4 && continue                         # (nothing: back to the default)
+        v isa Unitful.Mass && i in (2, 3) && continue              # (a mass of malt or of water)
+        @test_throws CommandError apply!(s3, make(v))
     end
     @test isbrewed(s3) && isempty(history(s3))
+    # the commands are concretely typed
+    @test isconcretetype(typeof(SetTemperature(:w, 70.0u"°C"))) && isconcretetype(typeof(SetAmount(:p, 2.0)))
+    @test isconcretetype(typeof(SetArrowField(:a, :b, 1, :time, 60.0u"minute")))
 
     # into commands
     s = batch_session()

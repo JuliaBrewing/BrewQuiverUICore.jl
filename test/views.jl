@@ -99,8 +99,9 @@
     @testset "Arrows" begin
         a = arrow_summary(s, :cascade, :kettle, 2)
         @test a.kind == "Transfer" && a.selected
-        @test (:amount => 0.025u"kg") in a.parameters
-        @test (:timing => Remaining(10u"minute")) in a.parameters
+        @test a.parameters.amount ≈ 0.025u"kg" && a.parameters.timing == Remaining(10u"minute")
+        @test !haskey(arrow_summary(s, :rested, :kettle).parameters, :retain)   # (not given)
+        @test isconcretetype(typeof(a)) && isconcretetype(typeof(first(fields(Boil()))))
         @test a.moved_mass ≈ 25u"g" && a.moved_volume ≈ 0u"L"
         b = arrow_summary(s, ArrowRef(:kettle, :wort))
         @test b.kind == "Boil" && b.duration ≈ 60u"minute"

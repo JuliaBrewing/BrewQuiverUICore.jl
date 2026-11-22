@@ -159,7 +159,7 @@ or the defaults if there is no such file.
 function load_units(path::AbstractString = units_path())
     isfile(path) || return UnitPreferences()
     d = TOML.parsefile(path)
-    units = Dict{Symbol, Any}()
+    units = Dict{Symbol, Union{Symbol, Unitful.Units}}()
     for (r, name) in get(d, "units", d)
         r = Symbol(r)
         haskey(UNIT_CHOICES, r) || throw(ArgumentError("$path: $(repr(r)) is not a role of units"))

@@ -163,16 +163,16 @@ end
     ArrowSummary
 
 What a frontend shows of an arrow, from [`arrow_summary`](@ref): `source`, `destination`,
-`index`, `kind` (`"Transfer"`, `"Boil"`, ...), `parameters` (the fields given, as
-`field => value`), its `duration`, and from the brew (`missing` if not brewed) the `moved`
+`index`, `kind` (`"Transfer"`, `"Boil"`, ...), `parameters` (the fields given, as a
+NamedTuple, e.g. `(time = 60.0 minute, stand = 0.0 minute, ...)`), its `duration`, and from the brew (`missing` if not brewed) the `moved`
 volume and mass and the `released` water and CO₂; whether it is `selected`.
 """
-struct ArrowSummary
+struct ArrowSummary{P <: NamedTuple}
     source::Symbol
     destination::Symbol
     index::Int
     kind::String
-    parameters::Vector{Pair{Symbol, Any}}
+    parameters::P
     duration::Unitful.Quantity
     moved_volume::Union{Missing, Unitful.Quantity}
     moved_mass::Union{Missing, Unitful.Quantity}
@@ -192,8 +192,8 @@ function arrow_summary(s::Session, src::Symbol, dst::Symbol, i::Integer = 1)
     r = ArrowRef(src, dst, i)
     isvalid_ref(s.quiver, r) || throw(ArgumentError("$r is not in the quiver"))
     a = s.quiver[src => dst, i]
-    params = Pair{Symbol, Any}[f => getfield(a, f) for f in fieldnames(typeof(a))
-                               if getfield(a, f) !== nothing]
+    given = Tuple(f for f in fieldnames(typeof(a)) if getfield(a, f) !== nothing)
+    params = NamedTuple{given}(Tuple(getfield(a, f) for f in given))
     moved = released = missing
     if isbrewed(s)
         ar = s.result[src => dst][i]
@@ -226,10 +226,10 @@ per dimension; empty if it is not a quantity), whether it is a `fraction` (a pla
 from 0 to 1, or a percentage), and whether it is `optional` (`nothing` allowed: then the
 vessel or a default gives it).
 """
-struct FieldSpec
+struct FieldSpec{V}
     name::Symbol
     label::String
-    value::Any
+    value::V
     units::Vector{Unitful.Units}
     fraction::Bool
     optional::Bool

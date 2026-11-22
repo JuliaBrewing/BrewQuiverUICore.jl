@@ -12,7 +12,7 @@ end
 state(s) = document(quiver(s))
 uptodate(s) = isbrewed(s) && same_brew(result(s), brew(quiver(s)))
 
-history_session(; kwargs...) = (s = batch_session(); s.history = History(; kwargs...); s)
+history_session(; kwargs...) = batch_session(; history = History(; kwargs...))
 
 amount(s, label) = only(solids(quiver(s)[label].initial)).amount
 
