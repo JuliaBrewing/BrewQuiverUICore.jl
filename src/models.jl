@@ -26,8 +26,8 @@ Brews the session with the `models` of BrewingFormulas (overriding `DEFAULT_MODE
 of the quiver, but of the session: the whole quiver is brewed again with them. Reverted by
 its [`Inverse`](@ref).
 """
-struct SetModels <: EditCommand
-    models::NamedTuple
+struct SetModels{M <: NamedTuple} <: EditCommand
+    models::M
 end
 
 _model_name(m) = string(nameof(typeof(m)))

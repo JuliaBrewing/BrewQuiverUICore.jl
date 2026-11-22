@@ -49,6 +49,33 @@
     apply!(s2, SetAmount(:strike_water, parse_value("17", volume(quiver(s2)[:strike_water].initial))))
     @test volume(quiver(s2)[:strike_water].initial) ≈ 17u"L"
 
+    # aliases of the units with symbols hard to type, and those brewers write otherwise
+    @test parse_value("180F") == 180u"°F" && parse_value("70 C") == 70u"°C"
+    @test parse_value("70c") == 70u"°C" && parse_value("70 ºC") == 70u"°C" && parse_value("70 degC") == 70u"°C"
+    @test parse_value("12 P") == 12u"°P" && parse_value("12 plato") == 12u"°P"
+    @test parse_value("1.050 SG") == 1.05u"sg" && parse_value("15 brix") == 15u"Brix"
+    @test parse_value("8 srm") == 8u"SRM" && parse_value("20 ebc") == 20u"EBC" && parse_value("60 lovibond") == 60u"°L"
+    @test parse_value("30 ibu") == 30u"IBU" && parse_value("2.4 vol") == 2.4u"vols"
+    @test parse_value("10 lbs") == 10u"lb" && parse_value("150 ppm") == 150u"mg/L"
+    @test parse_value("72", 75.0u"°C") == 72u"°C"
+
+    # what is typed of the wrong kind is refused, when the command is made or applied, with a
+    # CommandError: never another error
+    s3 = batch_session()
+    wrong = Any[nothing, true, 70u"m", 3u"kg", Remaining(5u"minute"), "text"]
+    makers = [v -> SetTemperature(:strike_water, v), v -> SetAmount(:pale, v), v -> SetAmount(:strike_water, v),
+              v -> SetArrowField(:kettle, :wort, 1, :stand_temperature, v),
+              v -> SetEquipmentField(:kettle, :capacity, v)]
+    for v in wrong, (i, make) in enumerate(makers)
+        v === nothing && i ≥ 4 && continue                         # (nothing: back to the default)
+        v isa Unitful.Mass && i in (2, 3) && continue              # (a mass of malt or of water)
+        @test_throws CommandError apply!(s3, make(v))
+    end
+    @test isbrewed(s3) && isempty(history(s3))
+    # the commands are concretely typed
+    @test isconcretetype(typeof(SetTemperature(:w, 70.0u"°C"))) && isconcretetype(typeof(SetAmount(:p, 2.0)))
+    @test isconcretetype(typeof(SetArrowField(:a, :b, 1, :time, 60.0u"minute")))
+
     # into commands
     s = batch_session()
     apply!(s, SetArrowField(:mash, :rested, 1, :conversion, parse_value("90%")))

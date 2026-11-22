@@ -1,5 +1,7 @@
 # The preferred units (see units.jl), defined before the session that holds them.
 
+const _U = Union{Symbol, Unitful.Units}   # (a unit, or :auto)
+
 """
     UNIT_CHOICES
 
@@ -22,17 +24,17 @@ see [`display_unit`](@ref)):
 | `rate` | evaporation, drain rate | L/hr, gal/hr |
 """
 const UNIT_CHOICES = (
-    fermentable = Any[:auto, u"kg", u"g", u"lb", u"oz"],
-    hop = Any[u"g", u"mg", u"kg", u"oz", u"lb"],
-    culture = Any[u"g", u"mg", u"kg", u"oz"],
-    agent = Any[u"g", u"mg", u"oz"],
-    mass = Any[:auto, u"kg", u"g", u"lb", u"oz"],
-    volume = Any[:auto, u"L", u"mL", u"hL", u"gal", u"qt", u"bbl"],
-    temperature = Any[u"°C", u"°F"],
-    gravity = Any[u"sg", u"°P", u"Brix"],
-    color = Any[u"SRM", u"EBC", u"°L"],
-    absorption = Any[u"L/kg", u"qt/lb"],
-    rate = Any[u"L/hr", u"gal/hr"])
+    fermentable = _U[:auto, u"kg", u"g", u"lb", u"oz"],
+    hop = _U[u"g", u"mg", u"kg", u"oz", u"lb"],
+    culture = _U[u"g", u"mg", u"kg", u"oz"],
+    agent = _U[u"g", u"mg", u"oz"],
+    mass = _U[:auto, u"kg", u"g", u"lb", u"oz"],
+    volume = _U[:auto, u"L", u"mL", u"hL", u"gal", u"qt", u"bbl"],
+    temperature = _U[u"°C", u"°F"],
+    gravity = _U[u"sg", u"°P", u"Brix"],
+    color = _U[u"SRM", u"EBC", u"°L"],
+    absorption = _U[u"L/kg", u"qt/lb"],
+    rate = _U[u"L/hr", u"gal/hr"])
 
 """
     UnitPreferences(; role = unit, ...)
@@ -43,9 +45,9 @@ temperature = u"°F")`. A [`Session`](@ref) has its preferences ([`units`](@ref)
 frontends from a configuration file ([`load_units`](@ref)).
 """
 struct UnitPreferences
-    units::Dict{Symbol, Any}
+    units::Dict{Symbol, Union{Symbol, Unitful.Units}}
     function UnitPreferences(d::AbstractDict)
-        units = Dict{Symbol, Any}(r => first(cs) for (r, cs) in pairs(UNIT_CHOICES))
+        units = Dict{Symbol, Union{Symbol, Unitful.Units}}(r => first(cs) for (r, cs) in pairs(UNIT_CHOICES))
         for (r, u) in d
             r = Symbol(r)
             haskey(UNIT_CHOICES, r) ||
@@ -57,7 +59,7 @@ struct UnitPreferences
         return new(units)
     end
 end
-UnitPreferences(; kwargs...) = UnitPreferences(Dict{Symbol, Any}(kwargs))
+UnitPreferences(; kwargs...) = UnitPreferences(Dict{Symbol, Union{Symbol, Unitful.Units}}(kwargs))
 
 Base.getindex(p::UnitPreferences, role::Symbol) = p.units[role]
 Base.:(==)(a::UnitPreferences, b::UnitPreferences) = a.units == b.units

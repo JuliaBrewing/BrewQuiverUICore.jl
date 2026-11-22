@@ -139,6 +139,7 @@ function _fmt(x::Unitful.Quantity)
     return string(isinteger(v) ? Int(v) : v, " ", unit(x))
 end
 _fmt(x::Real) = (v = round(x; sigdigits = 4); string(isinteger(v) ? Int(v) : v))
+_fmt(x::Bool) = string(x)
 _fmt(::Nothing) = "nothing"
 _fmt(x::Symbol) = ":$x"
 _fmt(x) = string(x)
@@ -234,6 +235,9 @@ struct SetAmount{A <: Union{Unitful.Quantity, Real}} <: EditCommand
     label::Symbol
     amount::A
 end
+# (what is typed may be of any kind: what is not an amount is refused when the command is made)
+SetAmount(label::Symbol, x) =
+    throw(CommandError("Set :$label to $(_fmt(x))", "an amount is a mass, a volume or a count, e.g. 4.5 kg, 16 L, 2"))
 
 describe(c::SetAmount) = "Set :$(c.label) to $(_fmt(c.amount))"
 function validate(c::SetAmount, q::Quiver)
@@ -246,6 +250,7 @@ revert_record(c::SetAmount, q::Quiver) = Inverse(SetInitial(c.label, q[c.label].
 perform!(q::Quiver, c::SetAmount) = (q[c.label] = _with_amount(c, q[c.label].initial); nothing)
 
 function _with_amount(c::SetAmount, x::Contents)
+    c.amount isa Bool && _refuse(c, "an amount is a mass, a volume or a count, e.g. 4.5 kg, 16 L, 2")
     _negative(c.amount) && _refuse(c, "an amount cannot be negative")
     if iszero(x.liquor) && length(x.solids) == 1 && only(x.solids) isa Portion
         p = only(x.solids)
@@ -309,10 +314,14 @@ end
 Sets the temperature of the lot of liquor `label` (e.g. the strike water). Reverted by its
 [`Inverse`](@ref).
 """
-struct SetTemperature <: EditCommand
+struct SetTemperature{T <: Unitful.Temperature} <: EditCommand
     label::Symbol
-    temperature::Unitful.Temperature
+    temperature::T
 end
+# (what is typed may be of any kind: what is not a temperature is refused when the command is made)
+SetTemperature(label::Symbol, x) =
+    throw(CommandError("Set the temperature of :$label to $(_fmt(x))",
+                       "a temperature is in °C or °F, e.g. 70 °C, 70 C, 158 F"))
 
 describe(c::SetTemperature) = "Set the temperature of :$(c.label) to $(_fmt(c.temperature))"
 function validate(c::SetTemperature, q::Quiver)
@@ -387,12 +396,12 @@ of the field (a dimensionless one, like a percentage, to a fraction); quantities
 amounts, times and rates cannot be negative, and fractions are between 0 and 1. Reverted by
 its [`Inverse`](@ref).
 """
-struct SetArrowField <: EditCommand
+struct SetArrowField{V} <: EditCommand
     source::Symbol
     destination::Symbol
     index::Int
     field::Symbol
-    value::Any
+    value::V
 end
 SetArrowField(e::Pair{Symbol, Symbol}, index::Integer, field::Symbol, value) =
     SetArrowField(e.first, e.second, index, field, value)
@@ -633,10 +642,10 @@ Sets the `field` of the equipment of `vessel` (a field of `Vessel`, e.g. `:evapo
 `value`, converted as by [`SetArrowField`](@ref); `nothing` leaves it to the arrows. A
 vessel without equipment gets one. Reverted by its [`Inverse`](@ref), an [`Equip`](@ref).
 """
-struct SetEquipmentField <: EditCommand
+struct SetEquipmentField{V} <: EditCommand
     vessel::Symbol
     field::Symbol
-    value::Any
+    value::V
 end
 
 describe(c::SetEquipmentField) = "Set the $(_field_name(c.field)) of the $(c.vessel) to $(_fmt(c.value))"
@@ -663,10 +672,10 @@ Keys without a prefix follow the convention of the README (`"position"`, `"colla
 (`"term."`, `"app."`). It only changes the layout: the brew is kept. Reverted by its
 [`Inverse`](@ref).
 """
-struct SetView <: EditCommand
+struct SetView{V} <: EditCommand
     label::Symbol
     key::String
-    value::Any
+    value::V
 end
 
 describe(c::SetView) = c.value === nothing ? "Clear the $(c.key) of :$(c.label)" :

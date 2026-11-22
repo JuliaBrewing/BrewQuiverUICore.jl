@@ -19,7 +19,7 @@ mutable struct HistoryEntry
     steps::Vector{Applied}
     selection_before::Vector{ItemRef}
     selection_after::Vector{ItemRef}
-    mergekey::Any
+    mergekey::Union{Nothing, String}   # (the repr of the mergekey of its commands)
     time::Float64
 end
 
@@ -38,12 +38,12 @@ Consecutive edits of the same field (the same [`mergekey`](@ref)) are merged int
 when they come within `merge_window` seconds of each other, by the `clock` (a function
 giving seconds; replaceable in tests).
 """
-mutable struct History
+mutable struct History{C}
     undo::Vector{HistoryEntry}
     redo::Vector{HistoryEntry}
     limit::Int
     merge_window::Float64
-    clock::Any
+    clock::C
     next_id::Int
     # the id of the state when the undo stack is empty: 0, or the last entry dropped
     floor::Int
@@ -56,7 +56,7 @@ end
 
 function History(; limit::Integer = 100, merge_window::Real = 1.5, clock = time)
     limit ≥ 1 || throw(ArgumentError("the history needs room for one step at least"))
-    return History(HistoryEntry[], HistoryEntry[], limit, merge_window, clock, 1, 0, nothing,
+    return History{typeof(clock)}(HistoryEntry[], HistoryEntry[], limit, merge_window, clock, 1, 0, nothing,
                    true, nothing)
 end
 

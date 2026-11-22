@@ -52,12 +52,12 @@ const EDITS = [
 ]
 
 # a single batch with some view data and equipment, so that their edits have something to revert
-function batch_session()
+function batch_session(; history = History())
     q = single_batch()
     nodeview(q, :kettle)["position"] = [1.0, 2.0]
     nodeview(q, :kettle)["color"] = "#ffcc00"
     equip!(q, :kettle, Vessel(evaporation = 4u"L/hr"))
-    return Session(q)
+    return Session(q; history)
 end
 
 @testset "Commands" begin

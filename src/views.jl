@@ -163,16 +163,16 @@ end
     ArrowSummary
 
 What a frontend shows of an arrow, from [`arrow_summary`](@ref): `source`, `destination`,
-`index`, `kind` (`"Transfer"`, `"Boil"`, ...), `parameters` (the fields given, as
-`field => value`), its `duration`, and from the brew (`missing` if not brewed) the `moved`
+`index`, `kind` (`"Transfer"`, `"Boil"`, ...), `parameters` (the fields given, as a
+NamedTuple, e.g. `(time = 60.0 minute, stand = 0.0 minute, ...)`), its `duration`, and from the brew (`missing` if not brewed) the `moved`
 volume and mass and the `released` water and CO₂; whether it is `selected`.
 """
-struct ArrowSummary
+struct ArrowSummary{P <: NamedTuple}
     source::Symbol
     destination::Symbol
     index::Int
     kind::String
-    parameters::Vector{Pair{Symbol, Any}}
+    parameters::P
     duration::Unitful.Quantity
     moved_volume::Union{Missing, Unitful.Quantity}
     moved_mass::Union{Missing, Unitful.Quantity}
@@ -192,8 +192,8 @@ function arrow_summary(s::Session, src::Symbol, dst::Symbol, i::Integer = 1)
     r = ArrowRef(src, dst, i)
     isvalid_ref(s.quiver, r) || throw(ArgumentError("$r is not in the quiver"))
     a = s.quiver[src => dst, i]
-    params = Pair{Symbol, Any}[f => getfield(a, f) for f in fieldnames(typeof(a))
-                               if getfield(a, f) !== nothing]
+    given = Tuple(f for f in fieldnames(typeof(a)) if getfield(a, f) !== nothing)
+    params = NamedTuple{given}(Tuple(getfield(a, f) for f in given))
     moved = released = missing
     if isbrewed(s)
         ar = s.result[src => dst][i]
@@ -214,7 +214,7 @@ The [`ArrowSummary`](@ref) of every arrow of `s`, by source in topological order
 destination and index.
 """
 arrow_summaries(s::Session) =
-    [arrow_summary(s, n, d, i) for n in nodes(s.quiver) for d in successors(s.quiver, n)
+    ArrowSummary[arrow_summary(s, n, d, i) for n in nodes(s.quiver) for d in successors(s.quiver, n)
                                for i in eachindex(s.quiver[n => d])]
 
 """
@@ -226,10 +226,10 @@ per dimension; empty if it is not a quantity), whether it is a `fraction` (a pla
 from 0 to 1, or a percentage), and whether it is `optional` (`nothing` allowed: then the
 vessel or a default gives it).
 """
-struct FieldSpec
+struct FieldSpec{V}
     name::Symbol
     label::String
-    value::Any
+    value::V
     units::Vector{Unitful.Units}
     fraction::Bool
     optional::Bool
@@ -311,9 +311,9 @@ function node_detail(s::Session, label::Symbol)
     return (summary = sm, initial = q[label].initial,
             contents = brewed ? s.result[label] : nothing,
             leftover = brewed ? leftover(s.result, label) : nothing,
-            incoming = [arrow_summary(s, p, label, i) for p in predecessors(q, label)
+            incoming = ArrowSummary[arrow_summary(s, p, label, i) for p in predecessors(q, label)
                                                      for i in eachindex(q[p => label])],
-            outgoing = [arrow_summary(s, label, d, i) for d in successors(q, label)
+            outgoing = ArrowSummary[arrow_summary(s, label, d, i) for d in successors(q, label)
                                                      for i in eachindex(q[label => d])])
 end
 

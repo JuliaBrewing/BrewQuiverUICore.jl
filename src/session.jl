@@ -22,7 +22,7 @@ back to `brew`.
 
 See also [`open_session`](@ref), [`import_recipe`](@ref), [`save!`](@ref).
 """
-mutable struct Session
+mutable struct Session{H <: History}
     quiver::Quiver
     path::Union{Nothing, String}
     models::NamedTuple
@@ -33,7 +33,7 @@ mutable struct Session
     # warnings that are not about the brew (e.g. of the import of a recipe), kept across brews
     notes::Vector{BrewWarning}
     selection::Vector{ItemRef}
-    history::History
+    history::H
     library::Library
     units::UnitPreferences
 end
@@ -41,7 +41,7 @@ end
 function Session(q::Quiver; path::Union{Nothing, AbstractString} = nothing,
                  models::NamedTuple = (;), notes = BrewWarning[], history::History = History(),
                  library::Library = Library(), units::UnitPreferences = UnitPreferences())
-    s = Session(q, path === nothing ? nothing : String(path), models, nothing,
+    s = Session{typeof(history)}(q, path === nothing ? nothing : String(path), models, nothing,
                 BrewFailed(ErrorException("not brewed yet")), Set{Symbol}(), BrewWarning[],
                 collect(BrewWarning, notes), ItemRef[], history, library, units)
     path === nothing || _mark_saved!(history)

@@ -10,7 +10,8 @@ does not know its stock, and `short` says whether the brew needs more than there
 is known). Empty if the quiver does not brew.
 """
 function inventory_rows(s::Session)
-    isbrewed(s) || return @NamedTuple{name::String, needed::Any, stock::Any, short::Bool}[]
+    isbrewed(s) || return @NamedTuple{name::String, needed::Union{Unitful.Quantity, Real},
+                                      stock::Union{Nothing, Unitful.Quantity, Real}, short::Bool}[]
     lib = s.library
     shorts = Set(x.name for x in shortages(lib, s.result, s.quiver))
     return [(name = name, needed = needed, stock = haskey(lib, name) ? stock(lib, name) : nothing,

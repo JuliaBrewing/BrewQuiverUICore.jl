@@ -39,7 +39,8 @@ function _record!(s::Session, step::Applied, before::Vector{ItemRef})
         push!(h.transaction.steps, step)
         return s
     end
-    key, now = mergekey(step.command), h.clock()
+    k, now = mergekey(step.command), h.clock()
+    key = k === nothing ? nothing : repr(k)       # (keys are only compared)
     top = isempty(h.undo) ? nothing : last(h.undo)
     if key !== nothing && top !== nothing && !h.barrier && top.mergekey == key &&
        now - top.time ≤ h.merge_window
