@@ -131,6 +131,8 @@
         @test d.contents ≈ res[:kettle]
         @test [(a.source, a.index) for a in d.incoming if a.source == :cascade] == [(:cascade, 1), (:cascade, 2)]
         @test only(d.outgoing).kind == "Boil"
+        @test d.incoming isa Vector{ArrowSummary} && node_detail(s, :pale).incoming isa Vector{ArrowSummary}
+        @test arrow_summaries(s) isa Vector{ArrowSummary}
         rows = solid_rows(d.contents)
         hops = [r for r in rows if r.name == "Cascade"]
         @test Set(r.timing for r in hops) == Set([Remaining(60u"minute"), Remaining(10u"minute")])

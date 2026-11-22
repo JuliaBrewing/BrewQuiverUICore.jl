@@ -214,7 +214,7 @@ The [`ArrowSummary`](@ref) of every arrow of `s`, by source in topological order
 destination and index.
 """
 arrow_summaries(s::Session) =
-    [arrow_summary(s, n, d, i) for n in nodes(s.quiver) for d in successors(s.quiver, n)
+    ArrowSummary[arrow_summary(s, n, d, i) for n in nodes(s.quiver) for d in successors(s.quiver, n)
                                for i in eachindex(s.quiver[n => d])]
 
 """
@@ -311,9 +311,9 @@ function node_detail(s::Session, label::Symbol)
     return (summary = sm, initial = q[label].initial,
             contents = brewed ? s.result[label] : nothing,
             leftover = brewed ? leftover(s.result, label) : nothing,
-            incoming = [arrow_summary(s, p, label, i) for p in predecessors(q, label)
+            incoming = ArrowSummary[arrow_summary(s, p, label, i) for p in predecessors(q, label)
                                                      for i in eachindex(q[p => label])],
-            outgoing = [arrow_summary(s, label, d, i) for d in successors(q, label)
+            outgoing = ArrowSummary[arrow_summary(s, label, d, i) for d in successors(q, label)
                                                      for i in eachindex(q[label => d])])
 end
 
