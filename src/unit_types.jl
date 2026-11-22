@@ -1,5 +1,7 @@
 # The preferred units (see units.jl), defined before the session that holds them.
 
+const _U = Union{Symbol, Unitful.Units}   # (a unit, or :auto)
+
 """
     UNIT_CHOICES
 
@@ -21,7 +23,6 @@ see [`display_unit`](@ref)):
 | `absorption` | grain and hop absorption | L/kg, qt/lb |
 | `rate` | evaporation, drain rate | L/hr, gal/hr |
 """
-const _U = Union{Symbol, Unitful.Units}   # (a unit, or :auto)
 const UNIT_CHOICES = (
     fermentable = _U[:auto, u"kg", u"g", u"lb", u"oz"],
     hop = _U[u"g", u"mg", u"kg", u"oz", u"lb"],
