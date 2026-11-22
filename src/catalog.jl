@@ -36,12 +36,15 @@ set_library!(s::Session, paths::AbstractString...) = set_library!(s, Library(pat
     catalog(s::Session) -> Dict{String, AbstractIngredient}
 
 The ingredients that can be added to the quiver of `s`, by name: the salts and acids of
-[`WATER_AGENTS`](@ref), the ingredients of the [`library`](@ref) of the session, and those
-of the lots of its quiver, which take precedence (the files of quivers refer to ingredients
-by name, so a name stands for one ingredient).
+[`WATER_AGENTS`](@ref), those of the [`STARTER_LIBRARY`](@ref), of the [`library`](@ref) of
+the session, and of the lots of its quiver, each taking precedence over the ones before (the
+files of quivers refer to ingredients by name, so a name stands for one ingredient).
 """
 function catalog(s::Session)
     out = Dict{String, AbstractIngredient}(i.name => i for i in WATER_AGENTS)
+    for n in keys(STARTER_LIBRARY)
+        out[n] = STARTER_LIBRARY[n]
+    end
     for n in keys(s.library)
         out[n] = s.library[n]
     end

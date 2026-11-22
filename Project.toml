@@ -1,6 +1,6 @@
 name = "BrewQuiverUICore"
 uuid = "a84b7d05-62f3-4b2e-bdcd-30013df68243"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["Ricardo Rosa <rmsrosa@gmail.com>"]
 
 [deps]
